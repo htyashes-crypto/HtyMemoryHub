@@ -155,6 +155,41 @@ def get(
 
 
 @app.command()
+def init(
+    workspace: str = WorkspaceOpt,
+    base_url: str = typer.Option(None, "--base-url", help="OpenAI-compatible 端点 URL"),
+    model: str = typer.Option(None, "--model", help="embedding 模型名"),
+    port: int = typer.Option(None, "--port", help="服务端口(默认 61397,多工作区并存时错开)"),
+) -> None:
+    """初始化/更新实例配置:填供应商 → 实调 API 探测维度 → 写 config.json。
+
+    参数齐全时非交互(脚本部署);缺省时交互引导。key 须已在环境变量。
+    """
+    from .config import EmbeddingConfig, write_config
+    from .embedder import probe_dim
+
+    cfg = load_config(workspace)
+    if base_url is None:
+        typer.echo("OpenAI-compatible 供应商样例(base_url · model):")
+        typer.echo("  阿里百炼:    https://dashscope.aliyuncs.com/compatible-mode/v1 · text-embedding-v4")
+        typer.echo("  智谱:        https://open.bigmodel.cn/api/paas/v4 · embedding-3")
+        typer.echo("  SiliconFlow: https://api.siliconflow.cn/v1 · BAAI/bge-m3")
+        typer.echo("  OpenAI:      https://api.openai.com/v1 · text-embedding-3-small")
+        base_url = typer.prompt("base_url", default=cfg.embedding.base_url if cfg.embedding else None)
+        model = typer.prompt("model", default=cfg.embedding.model if cfg.embedding else None)
+    elif model is None:
+        raise SystemExit("--base-url 与 --model 需成对提供")
+    if port is not None:
+        cfg.port = port
+    typer.echo(f"探测维度(实调 {base_url} 一次,同时验证 key/网络/模型名)...")
+    dim = probe_dim(base_url, model)
+    cfg.embedding = EmbeddingConfig(base_url=base_url, model=model, dim=dim)
+    write_config(cfg)
+    typer.echo(f"已写入 {cfg.config_path}(dim={dim})")
+    typer.echo("下一步:memoryhub reindex 建全量索引 → memoryhub serve 起服务")
+
+
+@app.command()
 def serve(workspace: str = WorkspaceOpt) -> None:
     """启动常驻服务:MCP(/mcp)+ REST,绑定 127.0.0.1:<port>。"""
     import uvicorn
