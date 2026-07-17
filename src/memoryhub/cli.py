@@ -159,7 +159,7 @@ def serve(workspace: str = WorkspaceOpt) -> None:
     """启动常驻服务:MCP(/mcp)+ REST,绑定 127.0.0.1:<port>。"""
     import uvicorn
 
-    from .indexer import reindex_keyword, reindex_vectors
+    from .indexer import reindex_keyword, reindex_vectors, start_watcher
     from .server import create_app
     from .store import connect
 
@@ -175,6 +175,8 @@ def serve(workspace: str = WorkspaceOpt) -> None:
         except SystemExit as exc:  # 网络/指纹问题:警告后照常起服务,vector 查询时仍会明确报错
             typer.echo(f"⚠ 向量层对账失败(keyword 仍可用): {exc}", err=True)
     con.close()
+    start_watcher(cfg)
+    typer.echo(f"watchdog: 监控 {cfg.memory_root}(.md 变更 2s 去抖增量)")
     typer.echo(f"MCP:  http://127.0.0.1:{cfg.port}/mcp")
     typer.echo(f"REST: http://127.0.0.1:{cfg.port}/search /doc/{{name}} /stats /healthz /reindex")
     uvicorn.run(create_app(cfg), host="127.0.0.1", port=cfg.port, log_level="warning")

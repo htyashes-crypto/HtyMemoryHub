@@ -143,3 +143,56 @@ def reindex_vectors(con: sqlite3.Connection, cfg: InstanceConfig,
         doc_count += 1
         chunk_count += len(texts)
     return doc_count, chunk_count
+
+
+def start_watcher(cfg: InstanceConfig, debounce_seconds: float = 2.0):
+    """监控 memory 目录,.md 变更 debounce 后跑一次全量对账式增量。
+
+    对账式(scan 全盘 hash diff)天然覆盖新增/修改/删除/改名,无需精细事件分派;
+    382 文件对账秒级。向量层失败只警告(keyword 保持新鲜,下次变更自动重试)。
+    返回 Observer(daemon 线程,随服务进程退出)。
+    """
+    import threading
+
+    from watchdog.events import FileSystemEventHandler
+    from watchdog.observers import Observer
+
+    from .store import connect
+
+    lock = threading.Lock()
+    timer_box: list = [None]
+
+    def run_sync() -> None:
+        with lock:
+            con = connect(cfg.db_path)
+            try:
+                stats = reindex_keyword(con, cfg)
+                if stats.added or stats.updated or stats.removed:
+                    print(f"[watch] 增量:{stats.summary()}", flush=True)
+                if cfg.embedding is not None:
+                    try:
+                        docs, chunks = reindex_vectors(con, cfg)
+                        if docs:
+                            print(f"[watch] 向量层:嵌入 {docs} docs / {chunks} chunks", flush=True)
+                    except SystemExit as exc:
+                        print(f"[watch] ⚠ 向量层同步失败(下次变更重试): {exc}", flush=True)
+            finally:
+                con.close()
+
+    class _Handler(FileSystemEventHandler):
+        def on_any_event(self, event) -> None:
+            paths = (str(event.src_path), str(getattr(event, "dest_path", "")))
+            if event.is_directory or not any(p.endswith(".md") for p in paths):
+                return
+            if timer_box[0] is not None:
+                timer_box[0].cancel()
+            t = threading.Timer(debounce_seconds, run_sync)
+            t.daemon = True
+            timer_box[0] = t
+            t.start()
+
+    observer = Observer()
+    observer.schedule(_Handler(), str(cfg.memory_root), recursive=True)
+    observer.daemon = True
+    observer.start()
+    return observer
