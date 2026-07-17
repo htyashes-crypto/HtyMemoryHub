@@ -33,12 +33,79 @@ MIGRATIONS: list[list[str]] = [
         "CREATE VIRTUAL TABLE fts USING fts5(name, display_seg, desc_seg, body_seg)",
         "CREATE TABLE meta(key TEXT PRIMARY KEY, value TEXT NOT NULL)",
     ],
+    [  # v2: 向量层块元表(Step 3;vec0 虚表因维度依赖配置而动态建,见 ensure_vec_table)
+        """CREATE TABLE chunks(
+            chunk_rowid INTEGER PRIMARY KEY,
+            doc_rowid INTEGER NOT NULL,
+            seq INTEGER NOT NULL,
+            text TEXT NOT NULL
+        )""",
+        "CREATE INDEX idx_chunks_doc ON chunks(doc_rowid)",
+    ],
 ]
+
+META_FINGERPRINT = "embed_fingerprint"  # base_url|model|dim,不匹配拒绝增量
+
+
+def load_vec_extension(con: sqlite3.Connection) -> None:
+    import sqlite_vec
+
+    con.enable_load_extension(True)
+    sqlite_vec.load(con)
+    con.enable_load_extension(False)
+
+
+def vec_table_exists(con: sqlite3.Connection) -> bool:
+    return con.execute(
+        "SELECT 1 FROM sqlite_master WHERE type='table' AND name='vec_chunks'"
+    ).fetchone() is not None
+
+
+def ensure_vec_table(con: sqlite3.Connection, dim: int) -> None:
+    con.execute(f"CREATE VIRTUAL TABLE IF NOT EXISTS vec_chunks USING vec0(embedding float[{dim}])")
+
+
+def purge_vector_layer(con: sqlite3.Connection) -> None:
+    """清空全部块与向量(换模型/维度后 reindex --force 用)。"""
+    con.execute("DELETE FROM chunks")
+    if vec_table_exists(con):
+        con.execute("DROP TABLE vec_chunks")  # 维度可能已变,整表重建
+
+
+def _delete_doc_chunks(con: sqlite3.Connection, doc_rowid: int) -> None:
+    if vec_table_exists(con):
+        con.execute(
+            "DELETE FROM vec_chunks WHERE rowid IN "
+            "(SELECT chunk_rowid FROM chunks WHERE doc_rowid = ?)", (doc_rowid,))
+    con.execute("DELETE FROM chunks WHERE doc_rowid = ?", (doc_rowid,))
+
+
+def replace_doc_chunks(con: sqlite3.Connection, doc_rowid: int,
+                       texts: list[str], vectors: list[list[float]]) -> None:
+    from sqlite_vec import serialize_float32
+
+    _delete_doc_chunks(con, doc_rowid)
+    for seq, (text, vec) in enumerate(zip(texts, vectors)):
+        cur = con.execute(
+            "INSERT INTO chunks(doc_rowid, seq, text) VALUES(?,?,?)",
+            (doc_rowid, seq, text))
+        con.execute(
+            "INSERT INTO vec_chunks(rowid, embedding) VALUES(?,?)",
+            (cur.lastrowid, serialize_float32(vec)))
+
+
+def docs_missing_chunks(con: sqlite3.Connection) -> list[tuple[int, str]]:
+    """待嵌入的文档(新增/内容变更后块被级联清除的):(doc_rowid, name)。"""
+    return con.execute(
+        "SELECT d.rowid, d.name FROM documents d WHERE NOT EXISTS "
+        "(SELECT 1 FROM chunks c WHERE c.doc_rowid = d.rowid) ORDER BY d.name"
+    ).fetchall()
 
 
 def connect(db_path: Path) -> sqlite3.Connection:
     db_path.parent.mkdir(parents=True, exist_ok=True)
     con = sqlite3.connect(db_path)
+    load_vec_extension(con)  # 统一加载:凡触及 vec_chunks 虚表的 SQL 都依赖 vec0 模块
     con.execute("PRAGMA journal_mode=WAL")
     ver = con.execute("PRAGMA user_version").fetchone()[0]
     for i in range(ver, len(MIGRATIONS)):
@@ -66,6 +133,7 @@ def upsert_doc(con: sqlite3.Connection, doc: MemoryDoc) -> None:
             (*cols, rowid),
         )
         con.execute("DELETE FROM fts WHERE rowid = ?", (rowid,))
+        _delete_doc_chunks(con, rowid)  # 内容已变,旧块/旧向量必失效 → 进"待嵌入"态
     else:
         cur = con.execute(
             """INSERT INTO documents(name, rel_path, grp, display_name, description,
@@ -83,6 +151,7 @@ def remove_doc(con: sqlite3.Connection, name: str) -> None:
     row = con.execute("SELECT rowid FROM documents WHERE name = ?", (name,)).fetchone()
     if row:
         con.execute("DELETE FROM fts WHERE rowid = ?", (row[0],))
+        _delete_doc_chunks(con, row[0])
         con.execute("DELETE FROM documents WHERE rowid = ?", (row[0],))
 
 

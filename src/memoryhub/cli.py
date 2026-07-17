@@ -87,9 +87,10 @@ def status(workspace: str = WorkspaceOpt) -> None:
 def reindex(
     workspace: str = WorkspaceOpt,
     keyword_only: bool = typer.Option(False, "--keyword-only", help="只重建关键词层(不调 embedding API)"),
+    force: bool = typer.Option(False, "--force", help="清空向量层全量重嵌(换 embedding 模型/维度后用)"),
 ) -> None:
-    """全量对账式重建索引(hash 未变的文件跳过)。"""
-    from .indexer import reindex_keyword
+    """全量对账式重建索引(hash 未变的文件跳过;向量层只嵌"缺块"文档)。"""
+    from .indexer import reindex_keyword, reindex_vectors
     from .store import connect
 
     cfg = load_config(workspace)
@@ -99,7 +100,8 @@ def reindex(
     stats = reindex_keyword(con, cfg)
     typer.echo(f"关键词层:{stats.summary()}")
     if not keyword_only:
-        raise SystemExit("向量层尚未实现(plan-1 Step 3)")  # Step 3 接管此分支
+        docs, chunks = reindex_vectors(con, cfg, force=force)
+        typer.echo(f"向量层:  嵌入 {docs} docs / {chunks} chunks")
     con.close()
 
 
