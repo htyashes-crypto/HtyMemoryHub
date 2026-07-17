@@ -83,6 +83,79 @@ def status(workspace: str = WorkspaceOpt) -> None:
     )
 
 
+@app.command()
+def reindex(
+    workspace: str = WorkspaceOpt,
+    keyword_only: bool = typer.Option(False, "--keyword-only", help="只重建关键词层(不调 embedding API)"),
+) -> None:
+    """全量对账式重建索引(hash 未变的文件跳过)。"""
+    from .indexer import reindex_keyword
+    from .store import connect
+
+    cfg = load_config(workspace)
+    if not keyword_only and cfg.embedding is None:
+        raise SystemExit("embedding 未配置(先跑 memoryhub init);当前可用 --keyword-only 只建关键词层")
+    con = connect(cfg.db_path)
+    stats = reindex_keyword(con, cfg)
+    typer.echo(f"关键词层:{stats.summary()}")
+    if not keyword_only:
+        raise SystemExit("向量层尚未实现(plan-1 Step 3)")  # Step 3 接管此分支
+    con.close()
+
+
+@app.command()
+def search(
+    query: str,
+    workspace: str = WorkspaceOpt,
+    mode: str = typer.Option("hybrid", "--mode", "-m", help="hybrid / vector / keyword"),
+    top_k: int = typer.Option(8, "--top-k", "-k"),
+    group: str = typer.Option(None, "--group", help="按组过滤,如 index_1_set_network"),
+    mtype: str = typer.Option(None, "--type", help="按类型过滤:feedback/project/reference/user"),
+) -> None:
+    """检索记忆:关键词(FTS5+jieba)/ 语义(向量)/ 混合。"""
+    from .store import connect, search_keyword
+
+    cfg = load_config(workspace)
+    if mode in ("hybrid", "vector") and cfg.embedding is None:
+        raise SystemExit(f"mode={mode} 需要 embedding(先跑 memoryhub init);无网络/未配置时可用 -m keyword")
+    if mode not in ("hybrid", "vector", "keyword"):
+        raise SystemExit(f"未知 mode: {mode}(可选 hybrid / vector / keyword)")
+    con = connect(cfg.db_path)
+    if mode == "keyword":
+        hits = search_keyword(con, query, top_k=top_k, group=group, mtype=mtype)
+    else:
+        raise SystemExit("vector/hybrid 尚未实现(plan-1 Step 3/4)")  # Step 3/4 接管
+    if not hits:
+        typer.echo("(无结果)")
+    for i, h in enumerate(hits, 1):
+        typer.echo(f"{i}. {h.name}  [{h.group or '根'}·{h.mtype or '-'}]  {h.score:.2f}")
+        if h.display_name != h.name:
+            typer.echo(f"   {h.display_name}")
+        if h.description:
+            typer.echo(f"   {h.description[:80]}")
+        typer.echo(f"   {h.snippet}")
+    con.close()
+
+
+@app.command()
+def get(
+    name: str,
+    workspace: str = WorkspaceOpt,
+) -> None:
+    """按主键(文件 basename)输出记忆全文。"""
+    from .store import connect, doc_body
+
+    cfg = load_config(workspace)
+    con = connect(cfg.db_path)
+    found = doc_body(con, name)
+    con.close()
+    if found is None:
+        raise SystemExit(f"记忆不存在: {name}")
+    rel, body = found
+    typer.echo(f"# {name}  ({rel})\n")
+    typer.echo(body)
+
+
 def main() -> None:
     # Windows 控制台默认 GBK,无法编码 ✓/· 等符号;统一 UTF-8 输出(一次解决所有命令)
     sys.stdout.reconfigure(encoding="utf-8")
