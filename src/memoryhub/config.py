@@ -32,6 +32,7 @@ class InstanceConfig:
     port: int
     memory_root_rel: str
     embedding: EmbeddingConfig | None  # None = 未 init,向量能力不可用
+    auth_token: str = ""               # 非空则服务端校验 Bearer(留空=本机免鉴权)
 
     @property
     def instance_dir(self) -> Path:
@@ -80,12 +81,15 @@ def load_config(workspace: str | None) -> InstanceConfig:
         port=int(data.get("port", DEFAULT_PORT)),
         memory_root_rel=data.get("memoryRoot", DEFAULT_MEMORY_ROOT),
         embedding=emb,
+        auth_token=str(data.get("authToken", "")),
     )
 
 
 def write_config(cfg: InstanceConfig) -> None:
     """把实例配置写回工作区(init 与配置变更共用;不含 key)。"""
     data: dict = {"port": cfg.port, "memoryRoot": cfg.memory_root_rel}
+    if cfg.auth_token:
+        data["authToken"] = cfg.auth_token
     if cfg.embedding is not None:
         data["embedding"] = {
             "baseUrl": cfg.embedding.base_url,

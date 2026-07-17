@@ -154,6 +154,32 @@ def get(
     typer.echo(body)
 
 
+@app.command()
+def serve(workspace: str = WorkspaceOpt) -> None:
+    """启动常驻服务:MCP(/mcp)+ REST,绑定 127.0.0.1:<port>。"""
+    import uvicorn
+
+    from .indexer import reindex_keyword, reindex_vectors
+    from .server import create_app
+    from .store import connect
+
+    cfg = load_config(workspace)
+    # 启动对账:覆盖服务停机期间的文件变更(增量,hash 未变即零成本)
+    con = connect(cfg.db_path)
+    stats = reindex_keyword(con, cfg)
+    typer.echo(f"启动对账(关键词层):{stats.summary()}")
+    if cfg.embedding is not None:
+        try:
+            docs, chunks = reindex_vectors(con, cfg)
+            typer.echo(f"启动对账(向量层):嵌入 {docs} docs / {chunks} chunks")
+        except SystemExit as exc:  # 网络/指纹问题:警告后照常起服务,vector 查询时仍会明确报错
+            typer.echo(f"⚠ 向量层对账失败(keyword 仍可用): {exc}", err=True)
+    con.close()
+    typer.echo(f"MCP:  http://127.0.0.1:{cfg.port}/mcp")
+    typer.echo(f"REST: http://127.0.0.1:{cfg.port}/search /doc/{{name}} /stats /healthz /reindex")
+    uvicorn.run(create_app(cfg), host="127.0.0.1", port=cfg.port, log_level="warning")
+
+
 def main() -> None:
     # Windows 控制台默认 GBK,无法编码 ✓/· 等符号;统一 UTF-8 输出(一次解决所有命令)
     sys.stdout.reconfigure(encoding="utf-8")
