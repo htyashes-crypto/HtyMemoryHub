@@ -237,3 +237,47 @@ def doc_body(con: sqlite3.Connection, name: str) -> tuple[str, str] | None:
     ).fetchone()
     return (row[0], row[1]) if row else None
 
+
+def search_vector(
+    con: sqlite3.Connection,
+    query_vec: list[float],
+    top_k: int = 8,
+    group: str | None = None,
+    mtype: str | None = None,
+) -> list[SearchHit]:
+    """kNN 语义检索:块级近邻 → 按文档聚合取最相似块;需向量层已建。"""
+    from sqlite_vec import serialize_float32
+
+    if not vec_table_exists(con):
+        raise SystemExit("向量层未建立:先配置 embedding 并跑 memoryhub reindex")
+    # kNN 只能在虚表查询内做,过滤放外层 → 候选取宽再过滤聚合
+    candidates = max(top_k * 5, 50)
+    sql = (
+        "SELECT d.name, d.rel_path, d.grp, d.display_name, d.description, d.mtype, "
+        "       MIN(v.distance) AS dist, "
+        "       (SELECT c2.text FROM chunks c2 JOIN vec_chunks v2 ON v2.rowid = c2.chunk_rowid "
+        "        WHERE c2.doc_rowid = d.rowid AND v2.embedding MATCH ?1 AND v2.k = ?2 "
+        "        ORDER BY v2.distance LIMIT 1) AS best_text "
+        "FROM vec_chunks v "
+        "JOIN chunks c ON c.chunk_rowid = v.rowid "
+        "JOIN documents d ON d.rowid = c.doc_rowid "
+        "WHERE v.embedding MATCH ?1 AND v.k = ?2 "
+    )
+    args: list = [serialize_float32(query_vec), candidates]
+    if group:
+        sql += " AND d.grp = ?"
+        args.append(group)
+    if mtype:
+        sql += " AND d.mtype = ?"
+        args.append(mtype)
+    sql += " GROUP BY d.rowid ORDER BY dist LIMIT ?"
+    args.append(top_k)
+    hits = []
+    for name, rel, grp, disp, desc, mt, dist, best_text in con.execute(sql, args):
+        snippet = (best_text or "").strip().replace("\n", " ")[:140]
+        hits.append(SearchHit(
+            name=name, rel_path=rel, group=grp, display_name=disp, description=desc,
+            mtype=mt, score=1.0 / (1.0 + float(dist)), snippet=snippet,
+        ))
+    return hits  # score = 距离的单调递减映射,统一"越大越相关"
+

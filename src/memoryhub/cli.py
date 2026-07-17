@@ -114,19 +114,15 @@ def search(
     group: str = typer.Option(None, "--group", help="按组过滤,如 index_1_set_network"),
     mtype: str = typer.Option(None, "--type", help="按类型过滤:feedback/project/reference/user"),
 ) -> None:
-    """检索记忆:关键词(FTS5+jieba)/ 语义(向量)/ 混合。"""
-    from .store import connect, search_keyword
+    """检索记忆:关键词(FTS5+jieba)/ 语义(向量)/ 混合(RRF 融合)。"""
+    from .search import run_search
+    from .store import connect
 
     cfg = load_config(workspace)
     if mode in ("hybrid", "vector") and cfg.embedding is None:
         raise SystemExit(f"mode={mode} 需要 embedding(先跑 memoryhub init);无网络/未配置时可用 -m keyword")
-    if mode not in ("hybrid", "vector", "keyword"):
-        raise SystemExit(f"未知 mode: {mode}(可选 hybrid / vector / keyword)")
     con = connect(cfg.db_path)
-    if mode == "keyword":
-        hits = search_keyword(con, query, top_k=top_k, group=group, mtype=mtype)
-    else:
-        raise SystemExit("vector/hybrid 尚未实现(plan-1 Step 3/4)")  # Step 3/4 接管
+    hits = run_search(con, cfg, query, mode=mode, top_k=top_k, group=group, mtype=mtype)
     if not hits:
         typer.echo("(无结果)")
     for i, h in enumerate(hits, 1):
