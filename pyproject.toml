@@ -1,0 +1,26 @@
+[project]
+name = "memoryhub"
+version = "0.1.0"
+description = "工作区记忆库检索服务:云 embedding + FTS5 混合检索,MCP(HTTP)/REST/CLI 三入口,工作区独立实例"
+readme = "README.md"
+authors = [
+    { name = "hanzhirui", email = "1029720365@qq.com" }
+]
+requires-python = ">=3.11"
+dependencies = [
+    "httpx>=0.28.1",
+    "jieba>=0.42.1",
+    "mcp>=1.28.1",
+    "pyyaml>=6.0.3",
+    "sqlite-vec>=0.1.9",
+    "typer>=0.27.0",
+    "uvicorn>=0.51.0",
+    "watchdog>=6.0.0",
+]
+
+[project.scripts]
+memoryhub = "memoryhub.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11.19,<0.12.0"]
+build-backend = "uv_build"
