@@ -4,7 +4,15 @@
 
 **工程 / 实例分离**:本仓库只有代码;每个使用方工作区持有自己的实例数据 `<工作区>/.htyworkflows/memoryhub/`(config.json + db,库是记忆 md 文件的派生物,可随时重建)。一份部署可服务多个工作区(各起一实例、端口错开)。
 
-## 新电脑 / 新工作区五步部署
+## 新工作区一键接入(推荐)
+
+```powershell
+uv run memoryhub onboard <工作区根>
+```
+
+一条命令完成:记忆库种子(目录不存在则建 `.htyworkflows/memory/MEMORY.md`)→ 自动挑空闲端口(61397 起,多工作区并存不冲突)→ 自动探测本机 Ollama(无则交互填任意 OpenAI-compatible 供应商)→ 建全量索引 → 注册工作区 `.mcp.json`。之后 `serve -w <工作区>` 即用。可选参数:`--port` / `--base-url` / `--model` 显式指定。
+
+## 新电脑首次部署(五步)
 
 ```powershell
 # 1. 取代码 + 装依赖(需已装 uv;python 版本由 uv 自动管理)

@@ -242,6 +242,85 @@ def init(
 
 
 @app.command()
+def onboard(
+    workspace: str = typer.Argument(..., help="要接入的工作区根目录(可以是全新目录)"),
+    base_url: str = typer.Option(None, "--base-url", help="缺省时自动探测本机 Ollama(11434)"),
+    model: str = typer.Option(None, "--model", help="缺省 bge-m3(随 Ollama 探测)"),
+    port: int = typer.Option(None, "--port", help="缺省从 61397 起自动挑空闲端口"),
+) -> None:
+    """一键接入新工作区:建记忆库种子 → 配置(端口/供应商)→ 建索引 → 注册 .mcp.json。"""
+    import json
+    import socket
+    from pathlib import Path
+
+    import httpx
+
+    from .config import (
+        DEFAULT_MEMORY_ROOT, DEFAULT_PORT, EmbeddingConfig, InstanceConfig, write_config,
+    )
+    from .embedder import probe_dim
+    from .indexer import reindex_keyword, reindex_vectors
+    from .store import connect
+
+    root = Path(workspace).resolve()
+    root.mkdir(parents=True, exist_ok=True)
+    mem = root / DEFAULT_MEMORY_ROOT
+    if not mem.is_dir():
+        mem.mkdir(parents=True)
+        (mem / "MEMORY.md").write_text(
+            "# MEMORY 索引\n\n> 本目录是工作区记忆库:一条知识一个 md 文件(文件名即身份),"
+            "frontmatter 写 name/description/type(feedback/project/reference/user)。"
+            "MemoryHub 自动索引本目录,检索走 memory_search。\n",
+            encoding="utf-8")
+        typer.echo(f"✓ 已创建记忆库种子 {mem}")
+    else:
+        typer.echo(f"✓ 记忆库已存在({sum(1 for _ in mem.rglob('*.md'))} 个 .md)")
+
+    if port is None:  # 自动挑空闲端口(从默认起),多工作区并存不冲突
+        port = DEFAULT_PORT
+        while True:
+            with socket.socket() as s:
+                if s.connect_ex(("127.0.0.1", port)) != 0:
+                    break
+            port += 1
+    typer.echo(f"✓ 端口 {port}")
+
+    if base_url is None:  # 探测本机 Ollama 既有环境(非猜测:实调确认)
+        try:
+            tags = httpx.get("http://127.0.0.1:11434/api/tags", timeout=3, trust_env=False).json()
+            models = [m["name"].split(":")[0] for m in tags.get("models", [])]
+            model = model or ("bge-m3" if "bge-m3" in models else models[0] if models else None)
+            if model:
+                base_url = "http://127.0.0.1:11434/v1"
+                typer.echo(f"✓ 探测到本机 Ollama,用模型 {model}")
+        except Exception:
+            pass
+    if base_url is None:
+        base_url = typer.prompt("base_url(OpenAI-compatible 端点)")
+        model = model or typer.prompt("model")
+    dim = probe_dim(base_url, model)
+    cfg = InstanceConfig(root, port, DEFAULT_MEMORY_ROOT,
+                         EmbeddingConfig(base_url, model, dim))
+    write_config(cfg)
+    typer.echo(f"✓ 配置写入 {cfg.config_path}(dim={dim})")
+
+    con = connect(cfg.db_path)
+    stats = reindex_keyword(con, cfg)
+    docs, chunks = reindex_vectors(con, cfg)
+    con.close()
+    typer.echo(f"✓ 索引就绪:{stats.summary()};向量 {docs} docs / {chunks} chunks")
+
+    mcp_path = root / ".mcp.json"
+    mcp_cfg = json.loads(mcp_path.read_text(encoding="utf-8")) if mcp_path.is_file() else {}
+    mcp_cfg.setdefault("mcpServers", {})["memoryhub"] = {
+        "type": "http", "url": f"http://127.0.0.1:{port}/mcp"}
+    mcp_path.write_text(json.dumps(mcp_cfg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    typer.echo(f"✓ 已注册 {mcp_path}")
+    typer.echo(f"\n完成。启动:uv run memoryhub serve -w {root}")
+    typer.echo(f"前端:http://127.0.0.1:{port}/ui/ · AI 工具重启会话后可用 memory_search")
+
+
+@app.command()
 def serve(workspace: str = WorkspaceOpt) -> None:
     """启动常驻服务:MCP(/mcp)+ REST,绑定 127.0.0.1:<port>。"""
     import uvicorn
