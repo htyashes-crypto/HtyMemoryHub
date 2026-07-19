@@ -72,10 +72,17 @@ class ReindexStats:
     added: int
     updated: int
     removed: int
+    arch_modules: int = 0
+    arch_errors: list[str] = None  # 架构围栏违规(违规模块跳过入表,不中断索引)
 
     def summary(self) -> str:
-        return (f"{self.total} docs(新增 {self.added} / 更新 {self.updated}"
-                f" / 删除 {self.removed})")
+        s = (f"{self.total} docs(新增 {self.added} / 更新 {self.updated}"
+             f" / 删除 {self.removed})")
+        if self.arch_modules or self.arch_errors:
+            s += f";图谱 {self.arch_modules} 模块"
+            if self.arch_errors:
+                s += f" / ⚠ {len(self.arch_errors)} 条围栏违规"
+        return s
 
 
 def reindex_keyword(con: sqlite3.Connection, cfg: InstanceConfig) -> ReindexStats:
@@ -95,8 +102,12 @@ def reindex_keyword(con: sqlite3.Connection, cfg: InstanceConfig) -> ReindexStat
                 updated += 1
         for stale in known:  # 库里有、盘上无 → 已删除/改名
             remove_doc(con, stale)
+        from .arch import collect, sync_to_store
+
+        defs, arch_errors = collect(docs)  # 架构组派生表全量重建;违规模块跳过并上报
+        sync_to_store(con, defs)
         set_meta(con, "last_indexed", datetime.now(timezone.utc).isoformat())
-    return ReindexStats(len(docs), added, updated, len(known))
+    return ReindexStats(len(docs), added, updated, len(known), len(defs), arch_errors)
 
 
 def fingerprint(cfg: InstanceConfig) -> str:

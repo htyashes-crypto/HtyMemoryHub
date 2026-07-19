@@ -42,6 +42,51 @@ MIGRATIONS: list[list[str]] = [
         )""",
         "CREATE INDEX idx_chunks_doc ON chunks(doc_rowid)",
     ],
+    [  # v3: 架构图谱派生表(plan-2;权威=index_12_architecture 组 md 文件,可全量重建)
+        """CREATE TABLE modules(
+            name TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            summary TEXT NOT NULL,
+            layer TEXT NOT NULL,
+            approved TEXT NOT NULL,
+            key_assets TEXT NOT NULL,
+            doc_name TEXT NOT NULL
+        )""",
+        """CREATE TABLE features(
+            module TEXT NOT NULL,
+            fid TEXT NOT NULL,
+            title TEXT NOT NULL,
+            requirement TEXT NOT NULL,
+            logic TEXT NOT NULL,
+            memory_refs TEXT NOT NULL,
+            PRIMARY KEY(module, fid)
+        )""",
+        """CREATE TABLE extension_points(
+            module TEXT NOT NULL,
+            epid TEXT NOT NULL,
+            title TEXT NOT NULL,
+            kind TEXT NOT NULL,
+            anchor TEXT NOT NULL,
+            additive_note TEXT NOT NULL,
+            implementations TEXT NOT NULL,
+            PRIMARY KEY(module, epid)
+        )""",
+        """CREATE TABLE relations(
+            src_module TEXT NOT NULL,
+            src_feature TEXT,
+            rtype TEXT NOT NULL,
+            target TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            evidence TEXT NOT NULL
+        )""",
+        "CREATE INDEX idx_relations_src ON relations(src_module)",
+        "CREATE INDEX idx_relations_target ON relations(target)",
+        """CREATE TABLE doc_links(
+            src_name TEXT NOT NULL,
+            dst_name TEXT NOT NULL,
+            PRIMARY KEY(src_name, dst_name)
+        )""",
+    ],
 ]
 
 META_FINGERPRINT = "embed_fingerprint"  # base_url|model|dim,不匹配拒绝增量
@@ -145,6 +190,11 @@ def upsert_doc(con: sqlite3.Connection, doc: MemoryDoc) -> None:
         "INSERT INTO fts(rowid, name, display_seg, desc_seg, body_seg) VALUES(?,?,?,?,?)",
         (rowid, doc.name, _seg(doc.display_name), _seg(doc.description), _seg(doc.body)),
     )
+    con.execute("DELETE FROM doc_links WHERE src_name = ?", (doc.name,))
+    con.executemany(
+        "INSERT OR IGNORE INTO doc_links(src_name, dst_name) VALUES(?,?)",
+        [(doc.name, dst) for dst in doc.wikilinks],
+    )
 
 
 def remove_doc(con: sqlite3.Connection, name: str) -> None:
@@ -152,6 +202,7 @@ def remove_doc(con: sqlite3.Connection, name: str) -> None:
     if row:
         con.execute("DELETE FROM fts WHERE rowid = ?", (row[0],))
         _delete_doc_chunks(con, row[0])
+        con.execute("DELETE FROM doc_links WHERE src_name = ?", (name,))
         con.execute("DELETE FROM documents WHERE rowid = ?", (row[0],))
 
 

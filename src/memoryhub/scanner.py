@@ -29,6 +29,7 @@ class MemoryDoc:
     content_hash: str    # 全文 sha256
     mtime: float
     wikilinks: list[str]
+    frontmatter: dict    # 原始 frontmatter 全量(架构模块文件的结构化字段由 arch 层消费)
 
 
 def _parse_frontmatter(text: str) -> tuple[dict, str]:
@@ -65,6 +66,7 @@ def parse_file(memory_root: Path, path: Path) -> MemoryDoc:
         content_hash=hashlib.sha256(raw.encode("utf-8")).hexdigest(),
         mtime=path.stat().st_mtime,
         wikilinks=_WIKILINK_RE.findall(raw),
+        frontmatter=fm,
     )
 
 

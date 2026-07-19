@@ -154,6 +154,28 @@ def get(
     typer.echo(body)
 
 
+arch_app = typer.Typer(help="架构图谱(index_12_architecture 组)", no_args_is_help=True)
+app.add_typer(arch_app, name="arch")
+
+
+@arch_app.command("lint")
+def arch_lint(workspace: str = WorkspaceOpt) -> None:
+    """架构围栏全量校验(R1~R6/R8;R7 分类漂移属 plan-4 lint)。纯校验不入库。"""
+    from .arch import collect
+    from .scanner import scan
+
+    cfg = load_config(workspace)
+    defs, errors = collect(scan(cfg.memory_root))
+    typer.echo(f"模块 {len(defs)} 个 · features {sum(len(d.features) for d in defs)}"
+               f" · 扩展点 {sum(len(d.extension_points) for d in defs)}"
+               f" · 边 {sum(len(d.relations) for d in defs)}")
+    if errors:
+        for e in errors:
+            typer.echo(f"  ✗ {e}")
+        raise SystemExit(f"围栏违规 {len(errors)} 条")
+    typer.echo("围栏校验全绿 ✓")
+
+
 @app.command()
 def init(
     workspace: str = WorkspaceOpt,
