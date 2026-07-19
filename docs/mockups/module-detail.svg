@@ -1,0 +1,142 @@
+<svg viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif; }
+      .mono { font-family: 'Consolas', 'Menlo', monospace; }
+      .ink-1 { fill: #191919; }
+      .ink-2 { fill: #73726c; }
+      .ink-3 { fill: #a8a29a; }
+      .ink-deep { fill: #3a3a37; }
+      .accent-text { fill: #c15f3c; }
+      .ok { fill: #2fa35e; }
+      .err { fill: #d6453e; }
+      .card { fill: #ffffff; stroke: #e5e2d9; stroke-width: 1; }
+      .card-soft { fill: #f0eee6; }
+      .accent-soft { fill: #f7ede8; }
+      .title { font-size: 14px; font-weight: 700; fill: #191919; letter-spacing: 0.3px; }
+      .nav { font-size: 13px; fill: #73726c; }
+      .nav-active { font-size: 13px; font-weight: 700; fill: #c15f3c; }
+      .h1 { font-size: 20px; font-weight: 700; fill: #191919; }
+      .kv-key { font-size: 11px; fill: #a8a29a; }
+      .kv-val { font-size: 12.5px; fill: #3a3a37; }
+      .feat-t { font-size: 13px; font-weight: 600; fill: #191919; }
+      .body { font-size: 12px; fill: #3a3a37; }
+      .ref { font-size: 11.5px; fill: #c15f3c; text-decoration: underline; }
+      .chip-t { font-size: 10.5px; fill: #73726c; }
+      .badge-ok { fill: rgba(47, 163, 94, 0.14); }
+      .badge-accent { fill: #f7ede8; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#faf9f5"/>
+
+  <!-- 顶栏 -->
+  <rect width="1440" height="52" fill="#f4f3ee"/>
+  <line x1="0" y1="52" x2="1440" y2="52" stroke="#e5e2d9"/>
+  <rect x="20" y="14" width="24" height="24" rx="6" fill="#d97757"/>
+  <text x="32" y="31" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">M</text>
+  <text x="54" y="31" font-size="15" font-weight="700" class="ink-1">MemoryHub</text>
+  <circle cx="1180" cy="26" r="4" class="ok"/>
+  <text x="1192" y="30" font-size="12" class="ink-2">索引已同步 · 3 分钟前</text>
+
+  <!-- 左侧导航 -->
+  <rect x="0" y="52" width="200" height="848" fill="#f4f3ee"/>
+  <line x1="200" y1="52" x2="200" y2="900" stroke="#e5e2d9"/>
+  <text x="24" y="99" class="nav">架构总览</text>
+  <rect x="8" y="118" width="184" height="36" rx="8" class="accent-soft"/>
+  <rect x="8" y="118" width="3" height="36" rx="1.5" fill="#d97757"/>
+  <text x="24" y="141" class="nav-active">模块详情</text>
+  <text x="24" y="183" class="nav">影响面分析</text>
+  <text x="24" y="225" class="nav">记忆检索</text>
+  <text x="24" y="267" class="nav">库健康</text>
+
+  <!-- 面包屑 -->
+  <text x="224" y="86" font-size="12" class="ink-3">架构总览 / 网络 · 同步</text>
+  <text x="360" y="86" font-size="12" class="accent-text" font-weight="600">/ StateSync 状态同步</text>
+
+  <!-- 模块头卡 -->
+  <rect x="224" y="100" width="1192" height="112" rx="14" class="card"/>
+  <text x="248" y="138" class="h1">StateSync 状态同步</text>
+  <rect x="452" y="120" width="84" height="24" rx="12" class="badge-accent"/>
+  <text x="494" y="136" font-size="11" class="accent-text" text-anchor="middle">网络 / 同步层</text>
+  <rect x="544" y="120" width="132" height="24" rx="12" class="badge-ok"/>
+  <text x="610" y="136" font-size="11" class="ok" text-anchor="middle">✓ approved 2026-07-20</text>
+  <text x="248" y="168" class="body">服务器权威状态的注册-应用-收敛管线;所有跨端可见状态(卡面/位置/归属)必须经 StateSync 下发,客户端禁自行改权威态。</text>
+  <text x="248" y="196" class="kv-key">关键资产</text>
+  <text x="310" y="196" font-size="11.5" fill="#73726c" class="mono">Assets/Scripts/Network/StateSync/ · BoardGame.Network.asmdef</text>
+  <rect x="1188" y="160" width="204" height="34" rx="8" fill="#d97757"/>
+  <text x="1290" y="182" font-size="12.5" fill="#ffffff" text-anchor="middle" font-weight="600">查此模块影响面 →</text>
+
+  <!-- ===== 左列:features ===== -->
+  <rect x="224" y="228" width="756" height="648" rx="14" class="card"/>
+  <text x="248" y="260" class="title">Features(12)</text>
+  <text x="342" y="260" font-size="11" class="ink-3">需求细节 requirement / 逻辑细节 logic · 点击展开</text>
+
+  <!-- feature 1 展开 -->
+  <rect x="244" y="276" width="716" height="188" rx="10" class="card-soft"/>
+  <text x="262" y="302" class="feat-t">▾ 卡堆翻牌权威面状态</text>
+  <rect x="856" y="288" width="90" height="20" rx="10" fill="#ffffff" stroke="#e5e2d9"/>
+  <text x="901" y="302" class="chip-t" text-anchor="middle">id: flip-face</text>
+  <text x="262" y="330" class="kv-key">需求细节</text>
+  <text x="262" y="350" class="body">翻牌后所有端看到一致的正/背面;中途加入的客户端按权威面状态恢复,不得出现两端面状态不一致。</text>
+  <text x="262" y="380" class="kv-key">逻辑细节(不变量)</text>
+  <text x="262" y="400" class="body">面状态唯一权威 = 服务器 bucket 内 faceState 字段;客户端翻转动画只是表现,收敛以 OnApplied 回调为准,</text>
+  <text x="262" y="418" class="body">禁在动画完成回调里改状态(时序早于收敛会被覆盖)。</text>
+  <text x="262" y="446" class="kv-key">关联记忆</text>
+  <text x="330" y="446" class="ref mono">project_cardpile_flip_authoritative_face_state</text>
+  <text x="660" y="446" class="ref mono">BUG-090</text>
+
+  <!-- feature 2 展开 -->
+  <rect x="244" y="480" width="716" height="150" rx="10" class="card-soft"/>
+  <text x="262" y="506" class="feat-t">▾ Register / OnApplied 时机契约</text>
+  <text x="262" y="534" class="kv-key">需求细节</text>
+  <text x="262" y="554" class="body">业务侧订阅同步字段后,首帧必须拿到当前权威值(不漏首包),后续变更逐次回调。</text>
+  <text x="262" y="582" class="kv-key">逻辑细节(不变量)</text>
+  <text x="262" y="602" class="body">Register 即补发当前值;OnApplied 在主线程按 command 顺序触发,禁在回调内再发起同字段写(重入)。</text>
+
+  <!-- feature 3/4 收起 -->
+  <rect x="244" y="646" width="716" height="44" rx="10" class="card-soft"/>
+  <text x="262" y="673" class="feat-t">▸ Pending 父子收敛(EntityPendingParentResolver)</text>
+  <rect x="244" y="702" width="716" height="44" rx="10" class="card-soft"/>
+  <text x="262" y="729" class="feat-t">▸ 断线重连状态回拉</text>
+  <text x="602" y="768" font-size="11" class="ink-3" text-anchor="middle">…滚动查看其余 8 个 features</text>
+
+  <!-- 横向扩展点区块 -->
+  <rect x="244" y="782" width="716" height="80" rx="10" fill="#f7ede8" stroke="#d4a27f"/>
+  <text x="262" y="806" font-size="12.5" font-weight="700" class="accent-text">⊞ 横向扩展点(1):同步字段类型处理器</text>
+  <text x="262" y="826" font-size="11" class="ink-deep mono">kind: reflection-registry · anchor: SyncFieldHandler&lt;T&gt; · 14 个并列实现</text>
+  <text x="262" y="846" font-size="10.5" class="ink-3">新增字段类型 = Additive 纯增插此扩展点,不改任何已有文件(变更契约)· [展开实现清单]</text>
+
+  <!-- ===== 右列:关系边 ===== -->
+  <rect x="996" y="228" width="420" height="648" rx="14" class="card"/>
+  <text x="1020" y="260" class="title">关系边</text>
+  <text x="1020" y="292" font-size="11" font-weight="700" fill="#a8a29a" letter-spacing="1">出边(此模块影响 / 依赖谁)</text>
+  <rect x="1012" y="304" width="388" height="64" rx="8" class="card-soft"/>
+  <circle cx="1030" cy="326" r="4" fill="#d6453e"/>
+  <text x="1042" y="330" font-size="12" class="ink-1" font-weight="600">affects → 手牌容器与出牌</text>
+  <text x="1042" y="350" font-size="11" class="ink-2">改同步时序会打坏选牌高亮 · BUG-090</text>
+  <rect x="1012" y="376" width="388" height="64" rx="8" class="card-soft"/>
+  <circle cx="1030" cy="398" r="4" fill="#d6453e"/>
+  <text x="1042" y="402" font-size="12" class="ink-1" font-weight="600">affects → 卡堆容器</text>
+  <text x="1042" y="422" font-size="11" class="ink-2">面状态收敛顺序变更会导致翻牌闪烁回跳</text>
+  <rect x="1012" y="448" width="388" height="64" rx="8" class="card-soft"/>
+  <circle cx="1030" cy="470" r="4" fill="#2fa35e"/>
+  <text x="1042" y="474" font-size="12" class="ink-1" font-weight="600">shares_state → 网络会话与联机门</text>
+  <text x="1042" y="494" font-size="11" class="ink-2">共用 client-ready gate;会话重置需幂等清理注册表</text>
+  <text x="1020" y="540" font-size="11" font-weight="700" fill="#a8a29a" letter-spacing="1">入边(谁依赖 / 影响此模块)</text>
+  <rect x="1012" y="552" width="388" height="52" rx="8" class="card-soft"/>
+  <circle cx="1030" cy="572" r="4" fill="#d97757"/>
+  <text x="1042" y="576" font-size="12" class="ink-1" font-weight="600">depends_on ← Display 绑定范式</text>
+  <text x="1042" y="594" font-size="11" class="ink-2">绑定值经同步字段驱动显示刷新</text>
+  <rect x="1012" y="612" width="388" height="52" rx="8" class="card-soft"/>
+  <circle cx="1030" cy="632" r="4" fill="#d97757"/>
+  <text x="1042" y="636" font-size="12" class="ink-1" font-weight="600">depends_on ← 手牌容器与出牌</text>
+  <text x="1042" y="654" font-size="11" class="ink-2">出牌回调链依赖权威手牌序列</text>
+  <rect x="1012" y="672" width="388" height="52" rx="8" class="card-soft"/>
+  <circle cx="1030" cy="692" r="4" fill="#d97757"/>
+  <text x="1042" y="696" font-size="12" class="ink-1" font-weight="600">depends_on ← 效果系统</text>
+  <text x="1042" y="714" font-size="11" class="ink-2">响应窗状态经 StateSync 广播到各端</text>
+  <text x="1020" y="762" font-size="11" font-weight="700" fill="#a8a29a" letter-spacing="1">编辑说明</text>
+  <text x="1020" y="784" font-size="11.5" class="ink-2">边与 features 的增改走 AI 沉淀流程或直改</text>
+  <text x="1020" y="802" font-size="11.5" class="ink-2">module_statesync.md,本页只读(权威=文件)。</text>
+</svg>

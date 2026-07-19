@@ -1,0 +1,136 @@
+<svg viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif; }
+      .mono { font-family: 'Consolas', 'Menlo', monospace; }
+      .ink-1 { fill: #191919; }
+      .ink-2 { fill: #73726c; }
+      .ink-3 { fill: #a8a29a; }
+      .ink-deep { fill: #3a3a37; }
+      .accent-text { fill: #c15f3c; }
+      .ok { fill: #2fa35e; }
+      .card { fill: #ffffff; stroke: #e5e2d9; stroke-width: 1; }
+      .card-soft { fill: #f0eee6; }
+      .accent-soft { fill: #f7ede8; }
+      .title { font-size: 14px; font-weight: 700; fill: #191919; letter-spacing: 0.3px; }
+      .nav { font-size: 13px; fill: #73726c; }
+      .nav-active { font-size: 13px; font-weight: 700; fill: #c15f3c; }
+      .res-name { font-size: 12.5px; font-weight: 700; fill: #191919; }
+      .res-desc { font-size: 11.5px; fill: #73726c; }
+      .snip { font-size: 11px; fill: #3a3a37; }
+      .hl { fill: #c15f3c; font-weight: 700; }
+      .chip-t { font-size: 10.5px; fill: #73726c; }
+      .score { fill: #d97757; }
+      .score-bg { fill: #ecebe2; }
+      .md-h { font-size: 15px; font-weight: 700; fill: #191919; }
+      .md-b { font-size: 12px; fill: #3a3a37; }
+      .md-code { font-size: 11px; fill: #e5e2dc; font-family: 'Consolas', 'Menlo', monospace; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#faf9f5"/>
+  <rect width="1440" height="52" fill="#f4f3ee"/>
+  <line x1="0" y1="52" x2="1440" y2="52" stroke="#e5e2d9"/>
+  <rect x="20" y="14" width="24" height="24" rx="6" fill="#d97757"/>
+  <text x="32" y="31" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">M</text>
+  <text x="54" y="31" font-size="15" font-weight="700" class="ink-1">MemoryHub</text>
+  <circle cx="1180" cy="26" r="4" class="ok"/>
+  <text x="1192" y="30" font-size="12" class="ink-2">索引已同步 · 3 分钟前</text>
+
+  <rect x="0" y="52" width="200" height="848" fill="#f4f3ee"/>
+  <line x1="200" y1="52" x2="200" y2="900" stroke="#e5e2d9"/>
+  <text x="24" y="99" class="nav">架构总览</text>
+  <text x="24" y="141" class="nav">模块详情</text>
+  <text x="24" y="183" class="nav">影响面分析</text>
+  <rect x="8" y="202" width="184" height="36" rx="8" class="accent-soft"/>
+  <rect x="8" y="202" width="3" height="36" rx="1.5" fill="#d97757"/>
+  <text x="24" y="225" class="nav-active">记忆检索</text>
+  <text x="24" y="267" class="nav">库健康</text>
+
+  <!-- 搜索区 -->
+  <rect x="224" y="72" width="1192" height="64" rx="12" class="card"/>
+  <rect x="244" y="88" width="620" height="34" rx="8" fill="#faf9f5" stroke="#d4a27f" stroke-width="1.5"/>
+  <text x="262" y="110" font-size="13" class="ink-1">联机时对方看不到我打出的手牌</text>
+  <rect x="880" y="92" width="64" height="26" rx="13" fill="#d97757"/>
+  <text x="912" y="109" font-size="11.5" fill="#ffffff" text-anchor="middle">混合 ✓</text>
+  <rect x="950" y="92" width="56" height="26" rx="13" fill="none" stroke="#e5e2d9"/>
+  <text x="978" y="109" font-size="11.5" class="ink-3" text-anchor="middle">语义</text>
+  <rect x="1012" y="92" width="68" height="26" rx="13" fill="none" stroke="#e5e2d9"/>
+  <text x="1046" y="109" font-size="11.5" class="ink-3" text-anchor="middle">关键词</text>
+  <rect x="1096" y="92" width="120" height="26" rx="6" fill="#ffffff" stroke="#e5e2d9"/>
+  <text x="1108" y="109" font-size="11.5" class="ink-2">组:全部 ▾</text>
+  <rect x="1224" y="92" width="120" height="26" rx="6" fill="#ffffff" stroke="#e5e2d9"/>
+  <text x="1236" y="109" font-size="11.5" class="ink-2">模块:全部 ▾</text>
+  <text x="1360" y="109" font-size="11" class="ink-3">耗时 41ms</text>
+
+  <!-- ===== 左:结果列表 ===== -->
+  <rect x="224" y="152" width="600" height="724" rx="14" class="card"/>
+  <text x="248" y="184" class="title">结果 · 8 条</text>
+  <text x="330" y="184" font-size="11" class="ink-3">混合排序 = 语义 + 关键词 RRF 融合</text>
+
+  <!-- 结果 1(选中态) -->
+  <rect x="240" y="200" width="568" height="112" rx="10" class="accent-soft" stroke="#d4a27f"/>
+  <text x="258" y="226" class="res-name mono">project_handcard_selection_authoritative_state</text>
+  <rect x="258" y="238" width="92" height="20" rx="10" fill="#ffffff" stroke="#e8c8bb"/>
+  <text x="304" y="252" class="chip-t" text-anchor="middle">手牌容器 · 模块</text>
+  <rect x="358" y="238" width="56" height="20" rx="10" fill="#ffffff" stroke="#e8c8bb"/>
+  <text x="386" y="252" class="chip-t" text-anchor="middle">project</text>
+  <rect x="700" y="240" width="80" height="6" rx="3" class="score-bg"/>
+  <rect x="700" y="240" width="74" height="6" rx="3" class="score"/>
+  <text x="786" y="248" font-size="10" class="ink-3">0.92</text>
+  <text x="258" y="278" class="res-desc">手牌选中的权威状态归属与跨端广播;选牌高亮以服务器态为准</text>
+  <text x="258" y="298" class="snip">…<tspan class="hl">联机</tspan>下<tspan class="hl">对方</tspan>端<tspan class="hl">手牌</tspan>选中不见:选中态未走 StateSync 广播,仅本地 UI 置位…</text>
+
+  <!-- 结果 2 -->
+  <rect x="240" y="322" width="568" height="96" rx="10" class="card-soft"/>
+  <text x="258" y="348" class="res-name mono">feedback-handcard-play-callback-contract</text>
+  <rect x="700" y="342" width="80" height="6" rx="3" class="score-bg"/>
+  <rect x="700" y="342" width="66" height="6" rx="3" class="score"/>
+  <text x="786" y="350" font-size="10" class="ink-3">0.84</text>
+  <text x="258" y="372" class="res-desc">容器先 RemoveAt 再回调出牌,card=已移除原实例;拒绝分支须 AddCardRaw 放回</text>
+  <text x="258" y="396" class="snip">…出牌回调后<tspan class="hl">对方</tspan>端不见牌:按 id 二次查找已移除实例导致丢牌…</text>
+
+  <!-- 结果 3 -->
+  <rect x="240" y="428" width="568" height="96" rx="10" class="card-soft"/>
+  <text x="258" y="454" class="res-name mono">project_statesync_register_onapplied_timing</text>
+  <rect x="700" y="448" width="80" height="6" rx="3" class="score-bg"/>
+  <rect x="700" y="448" width="58" height="6" rx="3" class="score"/>
+  <text x="786" y="456" font-size="10" class="ink-3">0.77</text>
+  <text x="258" y="478" class="res-desc">Register 即补发当前值;OnApplied 主线程按序触发,禁回调内重入写</text>
+  <text x="258" y="502" class="snip">…中途加入端漏首包表现为<tspan class="hl">看不到</tspan>已<tspan class="hl">打出</tspan>的牌…</text>
+
+  <!-- 结果 4 -->
+  <rect x="240" y="534" width="568" height="96" rx="10" class="card-soft"/>
+  <text x="258" y="560" class="res-name mono">feedback-mp-opponent-display-seatoffset</text>
+  <rect x="700" y="554" width="80" height="6" rx="3" class="score-bg"/>
+  <rect x="700" y="554" width="52" height="6" rx="3" class="score"/>
+  <text x="786" y="562" font-size="10" class="ink-3">0.71</text>
+  <text x="258" y="584" class="res-desc">联机显示对方玩家数据靠 displaySeatOffset(0本地/1对手),按 display 各设</text>
+  <text x="258" y="608" class="snip">…MainUI 只<tspan class="hl">对方手牌</tspan>容器 seatOffset=1,漏设则显示错位…</text>
+  <text x="524" y="668" font-size="11" class="ink-3" text-anchor="middle">…滚动查看其余 4 条</text>
+  <rect x="240" y="820" width="568" height="40" rx="8" class="card-soft"/>
+  <text x="258" y="845" font-size="11.5" class="ink-2">AI 同款接口:memory_search(query, mode, group, module) → 本页结果一致(双端一致)</text>
+
+  <!-- ===== 右:全文预览 ===== -->
+  <rect x="840" y="152" width="576" height="724" rx="14" class="card"/>
+  <text x="864" y="184" class="title mono">project_handcard_selection_authoritative_state.md</text>
+  <rect x="864" y="200" width="122" height="22" rx="11" class="accent-soft"/>
+  <text x="925" y="215" class="chip-t" text-anchor="middle">index_1_set_network 组</text>
+  <rect x="994" y="200" width="96" height="22" rx="11" class="accent-soft"/>
+  <text x="1042" y="215" class="chip-t" text-anchor="middle">挂:手牌容器</text>
+  <rect x="1098" y="200" width="120" height="22" rx="11" fill="none" stroke="#e5e2d9"/>
+  <text x="1158" y="215" class="chip-t" text-anchor="middle">在文件管理器打开</text>
+  <line x1="864" y1="238" x2="1392" y2="238" stroke="#eeece4"/>
+  <text x="864" y="270" class="md-h">手牌选中权威状态</text>
+  <text x="864" y="298" class="md-b">选牌高亮的唯一权威 = 服务器侧选中集合;客户端点击只发意图,亮不亮以</text>
+  <text x="864" y="318" class="md-b">StateSync 回传为准。禁本地先置位再等确认(会闪烁回跳)。</text>
+  <text x="864" y="350" font-size="13" font-weight="700" class="ink-1">Why</text>
+  <text x="864" y="374" class="md-b">双端各自置位曾导致 BUG-090:后攻端高亮与服务器不一致,出牌校验失败。</text>
+  <text x="864" y="406" font-size="13" font-weight="700" class="ink-1">How to apply</text>
+  <rect x="864" y="422" width="528" height="88" rx="8" fill="#1f1e1d"/>
+  <text x="880" y="448" class="md-code">// 点击仅发意图,不改本地高亮</text>
+  <text x="880" y="468" class="md-code">BgHandOps.RequestSelect(cardId);</text>
+  <text x="880" y="488" class="md-code">// 高亮统一在 OnApplied(selectionSet) 里刷新</text>
+  <text x="864" y="546" class="md-b">关联:[[project_statesync_architecture]] · [[feedback-handcard-play-callback-contract]]</text>
+  <text x="864" y="578" font-size="11" class="ink-3">最后更新 2026-06-30 · content-hash 8f3a…c2 · 本页只读,编辑走沉淀流程或直改文件</text>
+</svg>

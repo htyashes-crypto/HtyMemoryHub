@@ -1,0 +1,174 @@
+<svg viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif; }
+      .mono { font-family: 'Consolas', 'Menlo', monospace; }
+      .ink-1 { fill: #ece8e1; }
+      .ink-2 { fill: #b4aea3; }
+      .ink-3 { fill: #8a847a; }
+      .ink-deep { fill: #dbd5cb; }
+      .accent-text { fill: #e08a6a; }
+      .ok { fill: #3ab56a; }
+      .card { fill: #2a2620; stroke: #39342c; stroke-width: 1; }
+      .card-soft { fill: #2b2620; }
+      .accent-soft { fill: #3a2a22; }
+      .title { font-size: 14px; font-weight: 700; fill: #ece8e1; letter-spacing: 0.3px; }
+      .stat-num { font-size: 26px; font-weight: 700; fill: #ece8e1; }
+      .stat-label { font-size: 12px; fill: #b4aea3; }
+      .nav { font-size: 13px; fill: #b4aea3; }
+      .nav-active { font-size: 13px; font-weight: 700; fill: #e08a6a; }
+      .node { fill: #2a2620; stroke: #6b4d38; stroke-width: 1.5; }
+      .node-core { fill: #3a2a22; stroke: #d97757; stroke-width: 2; }
+      .node-label { font-size: 11px; fill: #dbd5cb; text-anchor: middle; }
+      .e-dep { stroke: #d97757; stroke-width: 1.8; fill: none; }
+      .e-aff { stroke: #e35f57; stroke-width: 2; stroke-dasharray: 9 5; fill: none; }
+      .e-share { stroke: #3ab56a; stroke-width: 2; stroke-dasharray: 1.5 4.5; stroke-linecap: round; fill: none; }
+      .e-rel { stroke: #8a847a; stroke-width: 1.2; stroke-dasharray: 4 3; fill: none; }
+      .lg { font-size: 11px; fill: #b4aea3; }
+      .grp { font-size: 11px; font-weight: 700; fill: #8a847a; letter-spacing: 1px; }
+      .mod-name { font-size: 12.5px; font-weight: 600; fill: #ece8e1; }
+      .mod-sub { font-size: 11px; fill: #b4aea3; }
+      .chip { fill: #2b2620; }
+      .chip-t { font-size: 10.5px; fill: #b4aea3; }
+    </style>
+    <marker id="darr-dep" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 Z" fill="#d97757"/></marker>
+    <marker id="darr-aff" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M1,1 L8.4,5 L1,9 Z" fill="#2a2620" stroke="#e35f57" stroke-width="1.4"/></marker>
+    <marker id="darr-share" markerWidth="10" markerHeight="9" refX="8.6" refY="4.5" orient="auto"><path d="M0.6,4.5 L4.8,1 L9,4.5 L4.8,8 Z" fill="#3ab56a"/></marker>
+  </defs>
+
+  <rect width="1440" height="900" fill="#1a1815"/>
+  <rect width="1440" height="52" fill="#24211c"/>
+  <line x1="0" y1="52" x2="1440" y2="52" stroke="#39342c"/>
+  <rect x="20" y="14" width="24" height="24" rx="6" fill="#d97757"/>
+  <text x="32" y="31" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">M</text>
+  <text x="54" y="31" font-size="15" font-weight="700" class="ink-1">MemoryHub</text>
+  <text x="152" y="31" font-size="12" class="ink-3">工作区:BoardGameEditor</text>
+  <circle cx="1180" cy="26" r="4" class="ok"/>
+  <text x="1192" y="30" font-size="12" class="ink-2">索引已同步 · 3 分钟前</text>
+  <rect x="1345" y="14" width="75" height="24" rx="12" class="chip"/>
+  <text x="1382" y="30" font-size="11" class="ink-2" text-anchor="middle">深色 ✓</text>
+
+  <rect x="0" y="52" width="200" height="848" fill="#24211c"/>
+  <line x1="200" y1="52" x2="200" y2="900" stroke="#39342c"/>
+  <rect x="8" y="76" width="184" height="36" rx="8" class="accent-soft"/>
+  <rect x="8" y="76" width="3" height="36" rx="1.5" fill="#d97757"/>
+  <text x="24" y="99" class="nav-active">架构总览</text>
+  <text x="24" y="141" class="nav">模块详情</text>
+  <text x="24" y="183" class="nav">影响面分析</text>
+  <text x="24" y="225" class="nav">记忆检索</text>
+  <text x="24" y="267" class="nav">库健康</text>
+  <line x1="16" y1="290" x2="184" y2="290" stroke="#39342c"/>
+  <text x="24" y="316" font-size="11" class="ink-3">记忆层级</text>
+  <text x="24" y="338" font-size="11.5" class="ink-deep">① 最高铁律</text>
+  <text x="24" y="358" font-size="11.5" fill="#e08a6a" font-weight="600">② 图谱结构(本页)</text>
+  <text x="24" y="378" font-size="11.5" class="ink-deep">③ 系统内部细节</text>
+
+  <rect x="224" y="72" width="200" height="76" rx="12" class="card"/>
+  <text x="244" y="104" class="stat-num">18</text>
+  <text x="244" y="128" class="stat-label">模块</text>
+  <rect x="440" y="72" width="200" height="76" rx="12" class="card"/>
+  <text x="460" y="104" class="stat-num">382</text>
+  <text x="460" y="128" class="stat-label">记忆文件</text>
+  <rect x="656" y="72" width="200" height="76" rx="12" class="card"/>
+  <text x="676" y="104" class="stat-num">57</text>
+  <text x="676" y="128" class="stat-label">关系边</text>
+  <rect x="872" y="72" width="200" height="76" rx="12" class="card"/>
+  <text x="892" y="104" class="stat-num">421</text>
+  <text x="892" y="128" class="stat-label">向量块</text>
+  <rect x="1088" y="72" width="328" height="76" rx="12" class="card"/>
+  <text x="1108" y="100" font-size="12" class="ink-2">嫌疑清单待审计</text>
+  <text x="1108" y="126" font-size="20" font-weight="700" fill="#e08a6a">4 项</text>
+  <rect x="1244" y="94" width="152" height="30" rx="8" fill="none" stroke="#6b4d38"/>
+  <text x="1320" y="114" font-size="12" fill="#e08a6a" text-anchor="middle">去库健康处理 →</text>
+
+  <!-- 全局关系图卡 -->
+  <rect x="224" y="164" width="848" height="712" rx="14" class="card"/>
+  <text x="248" y="196" class="title">全局架构图</text>
+  <text x="340" y="196" font-size="11" class="ink-3">主题对比稿(配色用)· 布局以浅色版最新稿为准:分层泳道 + ⊞ 扩展族</text>
+  <rect x="248" y="212" width="92" height="24" rx="12" class="accent-soft"/>
+  <line x1="258" y1="224" x2="284" y2="224" class="e-dep" marker-end="url(#darr-dep)"/><text x="294" y="228" class="lg">依赖</text>
+  <rect x="348" y="212" width="92" height="24" rx="12" class="accent-soft"/>
+  <line x1="358" y1="224" x2="384" y2="224" class="e-aff" marker-end="url(#darr-aff)"/><text x="394" y="228" class="lg">影响</text>
+  <rect x="448" y="212" width="116" height="24" rx="12" class="accent-soft"/>
+  <line x1="458" y1="224" x2="484" y2="224" class="e-share" marker-end="url(#darr-share)"/><text x="494" y="228" class="lg">共享状态</text>
+  <rect x="576" y="212" width="102" height="24" rx="12" fill="none" stroke="#39342c"/>
+  <line x1="588" y1="224" x2="610" y2="224" class="e-rel"/><text x="616" y="228" class="lg">相关(隐藏)</text>
+
+  <path d="M 620 574 C 600 540 580 520 566 508" class="e-dep" marker-end="url(#darr-dep)"/>
+  <path d="M 716 446 C 670 470 610 480 592 484" class="e-dep" marker-end="url(#darr-dep)"/>
+  <path d="M 536 496 C 500 520 470 540 452 552" class="e-aff" marker-end="url(#darr-aff)"/>
+  <path d="M 578 506 C 600 540 610 560 618 578" class="e-aff" marker-end="url(#darr-aff)"/>
+  <path d="M 384 486 C 390 450 396 420 402 390" class="e-share" marker-end="url(#darr-share)"/>
+  <path d="M 816 526 C 790 460 760 330 724 286" class="e-dep" marker-end="url(#darr-dep)"/>
+  <path d="M 676 268 C 620 258 570 254 534 254" class="e-rel"/>
+  <path d="M 858 344 C 820 370 770 400 746 412" class="e-rel"/>
+  <path d="M 620 596 C 560 590 500 580 462 572" class="e-share" marker-end="url(#darr-share)"/>
+  <path d="M 528 268 C 544 330 552 400 556 452" class="e-dep" marker-end="url(#darr-dep)"/>
+
+  <circle cx="560" cy="480" r="34" class="node-core"/>
+  <text x="560" y="477" class="node-label" font-weight="700">StateSync</text>
+  <text x="560" y="491" class="node-label">同步</text>
+  <circle cx="404" cy="364" r="27" class="node"/>
+  <text x="404" y="368" class="node-label">网络会话</text>
+  <circle cx="432" cy="564" r="27" class="node"/>
+  <text x="432" y="568" class="node-label">卡堆容器</text>
+  <circle cx="642" cy="598" r="27" class="node"/>
+  <text x="642" y="602" class="node-label">手牌容器</text>
+  <circle cx="738" cy="428" r="27" class="node"/>
+  <text x="738" y="432" class="node-label">Display 绑定</text>
+  <circle cx="508" cy="248" r="27" class="node"/>
+  <text x="508" y="252" class="node-label">蓝图引擎</text>
+  <circle cx="702" cy="264" r="27" class="node"/>
+  <text x="702" y="260" class="node-label">Mod 行为</text>
+  <text x="702" y="274" class="node-label">引擎</text>
+  <circle cx="380" cy="472" r="24" class="node"/>
+  <text x="380" y="476" class="node-label">回合系统</text>
+  <circle cx="836" cy="544" r="27" class="node"/>
+  <text x="836" y="548" class="node-label">效果系统</text>
+  <circle cx="878" cy="332" r="27" class="node"/>
+  <text x="878" y="336" class="node-label">UI 编辑器</text>
+  <circle cx="936" cy="624" r="24" class="node"/>
+  <text x="936" y="628" class="node-label">本地化</text>
+  <circle cx="324" cy="646" r="24" class="node"/>
+  <text x="324" y="650" class="node-label">Telemetry</text>
+  <rect x="596" y="500" width="236" height="44" rx="8" fill="#0f0d0b" opacity="0.95"/>
+  <text x="608" y="518" font-size="11" fill="#e5e2dc">affects:StateSync → 手牌容器</text>
+  <text x="608" y="534" font-size="10.5" fill="#8a847a">改同步时序会打坏选牌高亮 · BUG-090</text>
+
+  <!-- 右侧模块列 -->
+  <rect x="1088" y="164" width="328" height="712" rx="14" class="card"/>
+  <text x="1112" y="196" class="title">模块 · 按分层</text>
+  <text x="1338" y="196" font-size="11" fill="#e08a6a">共 18 个</text>
+  <text x="1112" y="228" class="grp">网络 / 同步</text>
+  <rect x="1104" y="240" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="259" class="mod-name">StateSync 状态同步</text>
+  <text x="1118" y="277" class="mod-sub">12 features · 出边 5 / 入边 3</text>
+  <rect x="1104" y="292" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="311" class="mod-name">网络会话与联机门</text>
+  <text x="1118" y="329" class="mod-sub">7 features · 出边 2 / 入边 4</text>
+  <rect x="1104" y="344" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="363" class="mod-name">卡堆容器</text>
+  <text x="1118" y="381" class="mod-sub">9 features · 出边 3 / 入边 2</text>
+  <text x="1112" y="424" class="grp">业务 / 运行时</text>
+  <rect x="1104" y="436" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="455" class="mod-name">手牌容器与出牌</text>
+  <text x="1118" y="473" class="mod-sub">11 features · 出边 4 / 入边 3</text>
+  <rect x="1104" y="488" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="507" class="mod-name">效果系统(响应窗/连锁)</text>
+  <text x="1118" y="525" class="mod-sub">14 features · 出边 3 / 入边 5</text>
+  <text x="1112" y="568" class="grp">引擎</text>
+  <rect x="1104" y="580" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="599" class="mod-name">蓝图引擎</text>
+  <text x="1118" y="617" class="mod-sub">16 features · 出边 2 / 入边 6</text>
+  <rect x="1104" y="632" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="651" class="mod-name">Mod 行为引擎</text>
+  <text x="1118" y="669" class="mod-sub">13 features · 出边 4 / 入边 4</text>
+  <text x="1112" y="712" class="grp">UI / 编辑器</text>
+  <rect x="1104" y="724" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="743" class="mod-name">Display 绑定范式</text>
+  <text x="1118" y="761" class="mod-sub">10 features · 出边 3 / 入边 2</text>
+  <rect x="1104" y="776" width="296" height="46" rx="8" class="card-soft"/>
+  <text x="1118" y="795" class="mod-name">UI 编辑器与 Drawer</text>
+  <text x="1118" y="813" class="mod-sub">15 features · 出边 2 / 入边 1</text>
+  <text x="1252" y="850" font-size="11" class="ink-3" text-anchor="middle">…滚动查看其余 9 个模块</text>
+</svg>

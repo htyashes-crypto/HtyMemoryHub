@@ -1,0 +1,122 @@
+<svg viewBox="0 0 1440 900" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <style>
+      text { font-family: 'HarmonyOS Sans SC', 'Microsoft YaHei', 'PingFang SC', sans-serif; }
+      .mono { font-family: 'Consolas', 'Menlo', monospace; }
+      .ink-1 { fill: #191919; }
+      .ink-2 { fill: #73726c; }
+      .ink-3 { fill: #a8a29a; }
+      .accent-text { fill: #c15f3c; }
+      .ok { fill: #2fa35e; }
+      .err { fill: #d6453e; }
+      .card { fill: #ffffff; stroke: #e5e2d9; stroke-width: 1; }
+      .card-soft { fill: #f0eee6; }
+      .accent-soft { fill: #f7ede8; }
+      .title { font-size: 14px; font-weight: 700; fill: #191919; letter-spacing: 0.3px; }
+      .nav { font-size: 13px; fill: #73726c; }
+      .nav-active { font-size: 13px; font-weight: 700; fill: #c15f3c; }
+      .kv-key { font-size: 11px; fill: #a8a29a; }
+      .kv-val { font-size: 13px; font-weight: 600; fill: #191919; }
+      .row-t { font-size: 12px; fill: #3a3a37; }
+      .th { font-size: 10.5px; fill: #a8a29a; letter-spacing: 0.5px; }
+      .badge-warn-t { font-size: 10.5px; fill: #c15f3c; }
+      .badge-err-t { font-size: 10.5px; fill: #d6453e; }
+    </style>
+  </defs>
+
+  <rect width="1440" height="900" fill="#faf9f5"/>
+  <rect width="1440" height="52" fill="#f4f3ee"/>
+  <line x1="0" y1="52" x2="1440" y2="52" stroke="#e5e2d9"/>
+  <rect x="20" y="14" width="24" height="24" rx="6" fill="#d97757"/>
+  <text x="32" y="31" font-size="13" font-weight="700" fill="#ffffff" text-anchor="middle">M</text>
+  <text x="54" y="31" font-size="15" font-weight="700" class="ink-1">MemoryHub</text>
+  <circle cx="1180" cy="26" r="4" class="ok"/>
+  <text x="1192" y="30" font-size="12" class="ink-2">索引已同步 · 3 分钟前</text>
+
+  <rect x="0" y="52" width="200" height="848" fill="#f4f3ee"/>
+  <line x1="200" y1="52" x2="200" y2="900" stroke="#e5e2d9"/>
+  <text x="24" y="99" class="nav">架构总览</text>
+  <text x="24" y="141" class="nav">模块详情</text>
+  <text x="24" y="183" class="nav">影响面分析</text>
+  <text x="24" y="225" class="nav">记忆检索</text>
+  <rect x="8" y="244" width="184" height="36" rx="8" class="accent-soft"/>
+  <rect x="8" y="244" width="3" height="36" rx="1.5" fill="#d97757"/>
+  <text x="24" y="267" class="nav-active">库健康</text>
+
+  <!-- 状态卡行 -->
+  <rect x="224" y="72" width="380" height="96" rx="12" class="card"/>
+  <text x="244" y="98" class="kv-key">索引状态</text>
+  <circle cx="252" cy="118" r="4" class="ok"/>
+  <text x="264" y="122" class="kv-val">健康 · 382 文档 / 421 向量块 / 57 边</text>
+  <text x="244" y="150" font-size="11" class="ink-3">最后增量 2026-07-17 14:32 · watchdog 监控中</text>
+  <rect x="620" y="72" width="380" height="96" rx="12" class="card"/>
+  <text x="640" y="98" class="kv-key">Embedding 模型指纹</text>
+  <text x="640" y="122" font-size="12" class="ink-1 mono">dashscope · text-embedding-v4 · dim 1024</text>
+  <text x="640" y="150" font-size="11" class="ink-3">指纹不匹配将拒绝增量并要求 reindex --force</text>
+  <rect x="1016" y="72" width="400" height="96" rx="12" class="card"/>
+  <text x="1036" y="98" class="kv-key">沉淀触发 capture_mode</text>
+  <rect x="1036" y="108" width="84" height="28" rx="14" fill="#d97757"/>
+  <text x="1078" y="127" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">manual ✓</text>
+  <rect x="1128" y="108" width="64" height="28" rx="14" fill="none" stroke="#e5e2d9"/>
+  <text x="1160" y="127" font-size="12" class="ink-3" text-anchor="middle">auto</text>
+  <text x="1036" y="156" font-size="11" class="ink-3">manual=用户显式信号;auto=完成即沉淀(架构层仍需批准)</text>
+  <rect x="1258" y="108" width="138" height="28" rx="8" fill="none" stroke="#d4a27f"/>
+  <text x="1327" y="127" font-size="12" class="accent-text" text-anchor="middle">重建索引</text>
+
+  <!-- ===== 架构层待裁决(高亮置顶,需要人看) ===== -->
+  <rect x="224" y="184" width="1192" height="150" rx="14" fill="#f7ede8" stroke="#d4a27f" stroke-width="1.5"/>
+  <text x="248" y="216" class="title" fill="#c15f3c">⚑ 架构层 · 待你裁决(1 项)</text>
+  <text x="470" y="216" font-size="11" class="ink-2">模块/组/关系类型级变更,任何模式下都必须人工批准,不会被 auto 绕过</text>
+  <rect x="244" y="232" width="1152" height="84" rx="10" fill="#ffffff" stroke="#e8c8bb"/>
+  <text x="262" y="260" font-size="13" font-weight="700" class="ink-1">架构缺口:沉淀"天灾结算窗口时序"时挂不上任何已有模块</text>
+  <text x="262" y="284" class="row-t">AI 建议:新建模块「天灾系统」(layer=业务/运行时,4 条候选 features 已备);或并入「效果系统」作 feature 组</text>
+  <text x="262" y="304" font-size="11" class="ink-3 mono">来源会话:2026-07-17 计划收尾沉淀 · 等待批准后写入 approved 标记</text>
+  <rect x="1120" y="248" width="120" height="30" rx="8" fill="#d97757"/>
+  <text x="1180" y="268" font-size="12" fill="#ffffff" text-anchor="middle" font-weight="600">批准新模块</text>
+  <rect x="1248" y="248" width="120" height="30" rx="8" fill="none" stroke="#d4a27f"/>
+  <text x="1308" y="268" font-size="12" class="accent-text" text-anchor="middle">并入效果系统</text>
+
+  <!-- ===== 细节层:硬拦记录 ===== -->
+  <rect x="224" y="350" width="580" height="240" rx="14" class="card"/>
+  <text x="248" y="382" class="title">细节层 · 机器围栏硬拦记录</text>
+  <text x="472" y="382" font-size="11" class="ink-3">已拒收,AI 修正后重写,无需人工</text>
+  <text x="248" y="412" class="th">时间</text><text x="340" y="412" class="th">规则</text><text x="560" y="412" class="th">处置</text>
+  <line x1="244" y1="422" x2="784" y2="422" stroke="#eeece4"/>
+  <text x="248" y="446" font-size="11" class="ink-3 mono">14:31</text>
+  <text x="340" y="446" class="row-t">R2:边缺 reason(effect→handcard)</text>
+  <text x="560" y="446" font-size="11" class="ok">已补理由重写 ✓</text>
+  <line x1="244" y1="458" x2="784" y2="458" stroke="#eeece4"/>
+  <text x="248" y="482" font-size="11" class="ink-3 mono">14:31</text>
+  <text x="340" y="482" class="row-t">R1:target 不存在(module-tianzai)</text>
+  <text x="560" y="482" font-size="11" class="badge-warn-t">转架构缺口 ⚑</text>
+  <line x1="244" y1="494" x2="784" y2="494" stroke="#eeece4"/>
+  <text x="248" y="518" font-size="11" class="ink-3 mono">昨天</text>
+  <text x="340" y="518" class="row-t">R5:未知 frontmatter 字段 priority</text>
+  <text x="560" y="518" font-size="11" class="ok">已去除重写 ✓</text>
+  <text x="248" y="560" font-size="11" class="ink-3">近 7 天硬拦 6 次 · 全部由 dry_run → 修正循环自动闭环</text>
+
+  <!-- ===== 细节层:嫌疑清单(AI 审计队列) ===== -->
+  <rect x="836" y="350" width="580" height="240" rx="14" class="card"/>
+  <text x="860" y="382" class="title">细节层 · 嫌疑清单(AI 审计队列 4 项)</text>
+  <text x="860" y="412" class="th">类型</text><text x="1000" y="412" class="th">对象</text>
+  <line x1="856" y1="422" x2="1396" y2="422" stroke="#eeece4"/>
+  <text x="860" y="446" class="badge-warn-t">分类漂移</text>
+  <text x="1000" y="446" font-size="11" class="row-t mono">feedback_editor_progressbar…(在 ui_editor,近 misc)</text>
+  <line x1="856" y1="458" x2="1396" y2="458" stroke="#eeece4"/>
+  <text x="860" y="482" class="badge-warn-t">分类漂移</text>
+  <text x="1000" y="482" font-size="11" class="row-t mono">project_lan_discovery…(与 network 质心偏离)</text>
+  <line x1="856" y1="494" x2="1396" y2="494" stroke="#eeece4"/>
+  <text x="860" y="518" class="badge-err-t">重复嫌疑</text>
+  <text x="1000" y="518" font-size="11" class="row-t mono">feedback_no_fallback ↔ feedback_rootcause_fix(0.93)</text>
+  <line x1="856" y1="530" x2="1396" y2="530" stroke="#eeece4"/>
+  <text x="860" y="554" class="badge-warn-t">断链候选</text>
+  <text x="1000" y="554" font-size="11" class="row-t mono">[[feedback_symbol_removal]] → 现名 …_reference_check</text>
+
+  <!-- ===== 底部:审计与对账 ===== -->
+  <rect x="224" y="606" width="1192" height="120" rx="14" class="card"/>
+  <text x="248" y="638" class="title">审计与对账</text>
+  <text x="248" y="666" class="row-t">双写对账:权威 382 ↔ Claude 缓存 382 一致 ✓ · 封面索引对账:MEMORY.md 与组封面 0 漏登 ✓ · lint 硬规则全绿 ✓</text>
+  <text x="248" y="692" font-size="11" class="ink-3">嫌疑清单由 AI 审计会话消化(改组/合并/更新),修正经写入 API 落盘 · 服务不后台自主写</text>
+  <rect x="1120" y="650" width="272" height="36" rx="8" fill="#d97757"/>
+  <text x="1256" y="673" font-size="12.5" fill="#ffffff" text-anchor="middle" font-weight="600">复制审计队列给 AI 会话处理</text>
+</svg>
