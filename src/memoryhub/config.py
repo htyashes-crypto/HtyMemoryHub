@@ -124,13 +124,17 @@ def load_port_registry() -> dict[str, str]:
 
 
 def register_port(port: int, workspace: Path) -> None:
-    """登记端口归属;同工作区旧端口条目一并清理(改端口后不留幽灵占位)。"""
+    """登记端口归属;同工作区旧端口条目一并清理(改端口后不留幽灵占位)。
+    顺带登记本机工程根(install.json)——部署判定与启动指引的机器无关锚点。"""
     reg = load_port_registry()
     ws = str(workspace)
     reg = {p: w for p, w in reg.items() if w != ws}
     reg[str(port)] = ws
     _PORTS_PATH.parent.mkdir(parents=True, exist_ok=True)
     _PORTS_PATH.write_text(json.dumps(reg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    (_PORTS_PATH.parent / "install.json").write_text(
+        json.dumps({"projectRoot": str(Path(__file__).resolve().parents[2])},
+                   ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 def port_owner(port: int) -> str | None:
