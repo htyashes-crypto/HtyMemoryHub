@@ -375,37 +375,66 @@ def _autostart_task_name(workspace) -> str:
     return f"MemoryHub-{slug}"
 
 
+def _startup_vbs_path(workspace):
+    import os
+    from pathlib import Path
+
+    startup = Path(os.environ["APPDATA"]) / "Microsoft" / "Windows" / "Start Menu" / "Programs" / "Startup"
+    return startup / f"{_autostart_task_name(workspace)}.vbs"
+
+
 @app.command("install-autostart")
 def install_autostart(workspace: str = WorkspaceOpt) -> None:
-    """注册 Windows 登录自启(每工作区一条计划任务,隐藏窗口常驻)。"""
+    """注册 Windows 登录自启(每工作区一条,静默常驻)。
+
+    双通道:优先 schtasks 计划任务;系统策略拒绝(Access denied)时改走
+    Startup 启动文件夹 .vbs(纯用户级零权限,效果等同),如实报告用了哪种。
+    """
     import subprocess
     from pathlib import Path
 
     cfg = load_config(workspace)
     project = Path(__file__).resolve().parents[2]
     task = _autostart_task_name(cfg.workspace)
-    inner = (f"& uv run --project '{project}' memoryhub serve -w '{cfg.workspace}'")
-    tr = f"powershell.exe -WindowStyle Hidden -Command \"{inner}\""
+    inner = f"& uv run --project '{project}' memoryhub serve -w '{cfg.workspace}'"
+    tr = f'powershell.exe -WindowStyle Hidden -Command "{inner}"'
     r = subprocess.run(
         ["schtasks", "/Create", "/TN", task, "/TR", tr, "/SC", "ONLOGON", "/F"],
         capture_output=True, text=True)
-    if r.returncode != 0:
+    if r.returncode == 0:
+        typer.echo(f"✓ 已注册计划任务 {task}(下次登录生效)")
+    elif "denied" in (r.stderr + r.stdout).lower():
+        vbs = _startup_vbs_path(cfg.workspace)
+        ps = inner.replace('"', '""')
+        vbs.write_text(
+            'CreateObject("Wscript.Shell").Run '
+            f'"powershell -WindowStyle Hidden -Command ""{ps}""", 0, False\n',
+            encoding="utf-8")
+        typer.echo(f"✓ schtasks 被系统策略拒绝,已改用启动文件夹方式(零权限,效果等同):\n  {vbs}")
+    else:
         raise SystemExit(f"注册失败: {r.stderr.strip() or r.stdout.strip()}")
-    typer.echo(f"✓ 已注册登录自启任务 {task}(下次登录生效;立即启动仍用 memoryhub serve)")
+    typer.echo("  注册 ≠ 当次生效:现在需要服务就手动 memoryhub serve 一次")
     typer.echo(f"  卸载:memoryhub uninstall-autostart -w {cfg.workspace}")
 
 
 @app.command("uninstall-autostart")
 def uninstall_autostart(workspace: str = WorkspaceOpt) -> None:
-    """卸载本工作区的登录自启任务。"""
+    """卸载本工作区的登录自启(计划任务与启动文件夹两通道都清)。"""
     import subprocess
 
     cfg = load_config(workspace)
     task = _autostart_task_name(cfg.workspace)
+    removed = []
     r = subprocess.run(["schtasks", "/Delete", "/TN", task, "/F"], capture_output=True, text=True)
-    if r.returncode != 0:
-        raise SystemExit(f"卸载失败(任务可能不存在): {r.stderr.strip() or r.stdout.strip()}")
-    typer.echo(f"✓ 已卸载 {task}")
+    if r.returncode == 0:
+        removed.append(f"计划任务 {task}")
+    vbs = _startup_vbs_path(cfg.workspace)
+    if vbs.is_file():
+        vbs.unlink()
+        removed.append(f"启动文件夹 {vbs.name}")
+    if not removed:
+        raise SystemExit("未发现本工作区的自启注册(两通道均无)")
+    typer.echo(f"✓ 已卸载:{' + '.join(removed)}")
 
 
 def main() -> None:
