@@ -217,7 +217,7 @@ def init(
 
     参数齐全时非交互(脚本部署);缺省时交互引导。key 须已在环境变量。
     """
-    from .config import EmbeddingConfig, write_config
+    from .config import EmbeddingConfig, port_owner, register_port, write_config
     from .embedder import probe_dim
 
     cfg = load_config(workspace)
@@ -232,11 +232,15 @@ def init(
     elif model is None:
         raise SystemExit("--base-url 与 --model 需成对提供")
     if port is not None:
+        owner = port_owner(port)
+        if owner is not None and owner != str(cfg.workspace):
+            raise SystemExit(f"端口 {port} 已登记给工作区 {owner};换端口")
         cfg.port = port
     typer.echo(f"探测维度(实调 {base_url} 一次,同时验证 key/网络/模型名)...")
     dim = probe_dim(base_url, model)
     cfg.embedding = EmbeddingConfig(base_url=base_url, model=model, dim=dim)
     write_config(cfg)
+    register_port(cfg.port, cfg.workspace)
     typer.echo(f"已写入 {cfg.config_path}(dim={dim})")
     typer.echo("下一步:memoryhub reindex 建全量索引 → memoryhub serve 起服务")
 
@@ -256,7 +260,8 @@ def onboard(
     import httpx
 
     from .config import (
-        DEFAULT_MEMORY_ROOT, DEFAULT_PORT, EmbeddingConfig, InstanceConfig, write_config,
+        DEFAULT_MEMORY_ROOT, DEFAULT_PORT, EmbeddingConfig, InstanceConfig,
+        port_owner, register_port, write_config,
     )
     from .embedder import probe_dim
     from .indexer import reindex_keyword, reindex_vectors
@@ -276,14 +281,21 @@ def onboard(
     else:
         typer.echo(f"✓ 记忆库已存在({sum(1 for _ in mem.rglob('*.md'))} 个 .md)")
 
-    if port is None:  # 自动挑空闲端口(从默认起),多工作区并存不冲突
+    if port is None:  # 自动挑端口:配置层登记(防"别的工作区服务没在跑"的分配竞态)+运行时占用双重检查
         port = DEFAULT_PORT
         while True:
-            with socket.socket() as s:
-                if s.connect_ex(("127.0.0.1", port)) != 0:
-                    break
+            owner = port_owner(port)
+            if owner is None or owner == str(root):
+                with socket.socket() as s:
+                    if s.connect_ex(("127.0.0.1", port)) != 0:
+                        break
             port += 1
-    typer.echo(f"✓ 端口 {port}")
+    else:
+        owner = port_owner(port)
+        if owner is not None and owner != str(root):
+            raise SystemExit(f"端口 {port} 已登记给工作区 {owner};换端口或先在对方 config 改走")
+    register_port(port, root)
+    typer.echo(f"✓ 端口 {port}(已登记 ~/.memoryhub/ports.json)")
 
     if base_url is None:  # 探测本机 Ollama 既有环境(非猜测:实调确认)
         try:
@@ -325,11 +337,19 @@ def serve(workspace: str = WorkspaceOpt) -> None:
     """启动常驻服务:MCP(/mcp)+ REST,绑定 127.0.0.1:<port>。"""
     import uvicorn
 
+    from .config import port_owner, register_port
     from .indexer import reindex_keyword, reindex_vectors, start_watcher
     from .server import create_app
     from .store import connect
 
     cfg = load_config(workspace)
+    owner = port_owner(cfg.port)
+    if owner is not None and owner != str(cfg.workspace):
+        raise SystemExit(
+            f"端口 {cfg.port} 登记归属工作区 {owner},与本实例 {cfg.workspace} 不符——"
+            f"拒绝启动以防会话连错记忆库;请 memoryhub init --port <新端口> 换端口(记得同步该工作区 .mcp.json)"
+        )
+    register_port(cfg.port, cfg.workspace)  # 旧实例(登记表出现前 onboard/init 的)首次 serve 自动补登记
     # 启动对账:覆盖服务停机期间的文件变更(增量,hash 未变即零成本)
     con = connect(cfg.db_path)
     stats = reindex_keyword(con, cfg)
@@ -346,6 +366,46 @@ def serve(workspace: str = WorkspaceOpt) -> None:
     typer.echo(f"MCP:  http://127.0.0.1:{cfg.port}/mcp")
     typer.echo(f"REST: http://127.0.0.1:{cfg.port}/search /doc/{{name}} /stats /healthz /reindex")
     uvicorn.run(create_app(cfg), host="127.0.0.1", port=cfg.port, log_level="warning")
+
+
+def _autostart_task_name(workspace) -> str:
+    import re
+
+    slug = re.sub(r"[^A-Za-z0-9]+", "-", str(workspace)).strip("-")
+    return f"MemoryHub-{slug}"
+
+
+@app.command("install-autostart")
+def install_autostart(workspace: str = WorkspaceOpt) -> None:
+    """注册 Windows 登录自启(每工作区一条计划任务,隐藏窗口常驻)。"""
+    import subprocess
+    from pathlib import Path
+
+    cfg = load_config(workspace)
+    project = Path(__file__).resolve().parents[2]
+    task = _autostart_task_name(cfg.workspace)
+    inner = (f"& uv run --project '{project}' memoryhub serve -w '{cfg.workspace}'")
+    tr = f"powershell.exe -WindowStyle Hidden -Command \"{inner}\""
+    r = subprocess.run(
+        ["schtasks", "/Create", "/TN", task, "/TR", tr, "/SC", "ONLOGON", "/F"],
+        capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit(f"注册失败: {r.stderr.strip() or r.stdout.strip()}")
+    typer.echo(f"✓ 已注册登录自启任务 {task}(下次登录生效;立即启动仍用 memoryhub serve)")
+    typer.echo(f"  卸载:memoryhub uninstall-autostart -w {cfg.workspace}")
+
+
+@app.command("uninstall-autostart")
+def uninstall_autostart(workspace: str = WorkspaceOpt) -> None:
+    """卸载本工作区的登录自启任务。"""
+    import subprocess
+
+    cfg = load_config(workspace)
+    task = _autostart_task_name(cfg.workspace)
+    r = subprocess.run(["schtasks", "/Delete", "/TN", task, "/F"], capture_output=True, text=True)
+    if r.returncode != 0:
+        raise SystemExit(f"卸载失败(任务可能不存在): {r.stderr.strip() or r.stdout.strip()}")
+    typer.echo(f"✓ 已卸载 {task}")
 
 
 def main() -> None:

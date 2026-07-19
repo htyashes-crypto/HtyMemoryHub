@@ -104,3 +104,30 @@ def write_config(cfg: InstanceConfig) -> None:
 
 def api_key() -> str | None:
     return os.environ.get(ENV_API_KEY) or None
+
+
+# ---- 机器级端口登记(port ↔ workspace):多工作区实例的配置层隔离 ----
+# 只看"运行时占用"分配端口有竞态:B onboard 时 A 服务恰好没跑,两工作区会分到
+# 同端口→后启动方 bind 失败或会话静默连错库。登记表使分配与归属在配置层唯一。
+
+_PORTS_PATH = Path.home() / ".memoryhub" / "ports.json"
+
+
+def load_port_registry() -> dict[str, str]:
+    if not _PORTS_PATH.is_file():
+        return {}
+    return json.loads(_PORTS_PATH.read_text(encoding="utf-8"))
+
+
+def register_port(port: int, workspace: Path) -> None:
+    """登记端口归属;同工作区旧端口条目一并清理(改端口后不留幽灵占位)。"""
+    reg = load_port_registry()
+    ws = str(workspace)
+    reg = {p: w for p, w in reg.items() if w != ws}
+    reg[str(port)] = ws
+    _PORTS_PATH.parent.mkdir(parents=True, exist_ok=True)
+    _PORTS_PATH.write_text(json.dumps(reg, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def port_owner(port: int) -> str | None:
+    return load_port_registry().get(str(port))
