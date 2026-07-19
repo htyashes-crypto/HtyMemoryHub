@@ -289,6 +289,13 @@ def doc_body(con: sqlite3.Connection, name: str) -> tuple[str, str] | None:
     return (row[0], row[1]) if row else None
 
 
+def modules_of_doc(con: sqlite3.Connection, name: str) -> list[str]:
+    """该记忆被哪些模块的 feature 收编(memory_refs 反查;json 数组文本按带引号串匹配)。"""
+    return [m for (m,) in con.execute(
+        "SELECT DISTINCT module FROM features WHERE memory_refs LIKE ?",
+        (f'%"{name}"%',))]
+
+
 def search_vector(
     con: sqlite3.Connection,
     query_vec: list[float],

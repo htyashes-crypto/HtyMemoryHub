@@ -12,7 +12,7 @@ from mcp.server.fastmcp import FastMCP
 
 from .config import InstanceConfig
 from .search import run_search
-from .store import SearchHit, connect, doc_body, get_meta
+from .store import SearchHit, connect, doc_body, get_meta, modules_of_doc
 
 _cfg: InstanceConfig | None = None  # serve 启动时注入(进程级单实例)
 
@@ -43,7 +43,9 @@ def _do_search(query: str, mode: str, top_k: int, group: str | None,
         results = []
         for h in hits:
             body = doc_body(con, h.name)[1] if include_body else None
-            results.append(_hit_dict(h, body))
+            d = _hit_dict(h, body)
+            d["modules"] = modules_of_doc(con, h.name)  # 所属图谱模块(第二层结构定位)
+            results.append(d)
         last = get_meta(con, "last_indexed")
     return {"query": query, "mode": mode, "lastIndexed": last, "results": results}
 

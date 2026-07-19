@@ -125,8 +125,12 @@ def search(
     hits = run_search(con, cfg, query, mode=mode, top_k=top_k, group=group, mtype=mtype)
     if not hits:
         typer.echo("(无结果)")
+    from .store import modules_of_doc
+
     for i, h in enumerate(hits, 1):
-        typer.echo(f"{i}. {h.name}  [{h.group or '根'}·{h.mtype or '-'}]  {h.score:.2f}")
+        mods = modules_of_doc(con, h.name)
+        mod_tag = f" ⊂{','.join(mods)}" if mods else ""
+        typer.echo(f"{i}. {h.name}  [{h.group or '根'}·{h.mtype or '-'}]{mod_tag}  {h.score:.2f}")
         if h.display_name != h.name:
             typer.echo(f"   {h.display_name}")
         if h.description:
