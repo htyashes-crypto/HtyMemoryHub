@@ -40,6 +40,7 @@ export interface Stats {
   lastIndexed: string | null;
   embedding: { baseUrl: string; model: string; dim: number } | null;
   fingerprint: string | null;
+  captureMode: string;
 }
 
 export interface ModuleBrief {
