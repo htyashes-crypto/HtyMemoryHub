@@ -90,9 +90,10 @@ mcp = FastMCP("memoryhub")  # 标准有状态 streamable-http(SDK 客户端按 m
 def memory_search(query: str, mode: str = "hybrid", top_k: int = 8,
                   group: str | None = None, mtype: str | None = None,
                   include_body: bool = False) -> dict:
-    """检索工作区记忆库(关键词或自然语句)。mode: hybrid(默认)/vector/keyword;
-    group 按组过滤(如 index_1_set_network);mtype 按类型过滤(feedback/project/...);
-    默认返回摘要与命中片段,include_body=True 附全文。"""
+    """检索工作区记忆库(关键词或自然语句)。mode: hybrid(默认)/vector/keyword——
+    代号/ID 类精确查询(如 BUG-105、类名、GUID)建议 mode=keyword(向量对代号语义弱,
+    hybrid 会被稀释);group 按组过滤(如 index_1_set_network);mtype 按类型过滤
+    (feedback/project/...);默认返回摘要与命中片段,include_body=True 附全文。"""
     return _do_search(query, mode, top_k, group, mtype, include_body)
 
 

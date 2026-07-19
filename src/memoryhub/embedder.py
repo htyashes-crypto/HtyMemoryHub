@@ -17,6 +17,15 @@ BATCH_SIZE = 64
 _RETRY_DELAYS = (1.0, 2.0, 4.0)  # 429/5xx 指数退避;之后如实抛错
 _TIMEOUT = httpx.Timeout(60.0, connect=10.0)
 
+_LOOPBACK_HOSTS = ("127.0.0.1", "localhost", "::1")
+
+
+def _make_client(base_url: str) -> httpx.Client:
+    """回环端点(本地 Ollama 等)强制直连——httpx 会把注册表系统代理套到 127.0.0.1
+    上导致 403(Windows 实测);云端点保留 trust_env(可能需经代理出网)。"""
+    local = httpx.URL(base_url).host in _LOOPBACK_HOSTS
+    return httpx.Client(timeout=_TIMEOUT, trust_env=not local)
+
 
 class EmbedError(SystemExit):
     """embedding 调用失败(网络/鉴权/协议),消息面向用户可读。"""
@@ -66,7 +75,7 @@ def embed_texts(emb: EmbeddingConfig, texts: list[str]) -> list[list[float]]:
     if not key:
         raise EmbedError(f"环境变量 {ENV_API_KEY} 未设置,无法调用 embedding API")
     out: list[list[float]] = []
-    with httpx.Client(timeout=_TIMEOUT) as client:
+    with _make_client(emb.base_url) as client:
         for i in range(0, len(texts), BATCH_SIZE):
             out.extend(_post_batch(client, emb, key, texts[i:i + BATCH_SIZE]))
     return out
@@ -77,9 +86,8 @@ def probe_dim(base_url: str, model: str) -> int:
     key = api_key()
     if not key:
         raise EmbedError(f"环境变量 {ENV_API_KEY} 未设置,无法探测维度")
-    probe = EmbeddingConfig(base_url=base_url, model=model, dim=-1)
-    with httpx.Client(timeout=_TIMEOUT) as client:
-        url = probe.base_url.rstrip("/") + "/embeddings"
+    with _make_client(base_url) as client:
+        url = base_url.rstrip("/") + "/embeddings"
         resp = client.post(url, json={"model": model, "input": ["dim probe"]},
                            headers={"Authorization": f"Bearer {key}"})
     if resp.status_code != 200:
