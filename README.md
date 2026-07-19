@@ -72,6 +72,10 @@ memoryhub serve
 | reindex 报"embedding 配置已变" | 换过供应商/模型:`reindex --force` 清向量层全量重嵌 |
 | 检索结果陈旧 | 服务是否在跑(watchdog 随服务);手动 `reindex` 兜底 |
 
+## 前端(可视化五视图)
+
+服务启动后浏览器开 `http://127.0.0.1:<port>/ui/`:架构总览(分层泳道图,单击节点=焦点模式/双击=详情,可切力导)、模块详情、影响面分析(导出回归清单 md)、记忆检索、库健康。**运行不需要 Node**(`webui/dist` 产物随仓库);改前端才需要:`cd webui && pnpm install && pnpm dev`(dev 走代理连 61397),改完 `pnpm build` 并把 dist 一起提交。
+
 ## 开发
 
-`src/memoryhub/`:config(实例配置)→ scanner(md 解析)→ store(SQLite/FTS5/vec0)→ embedder(API 客户端)→ indexer(编排+watchdog)→ search(三模式 RRF)→ server(MCP+REST)→ cli。改代码后 `uv run memoryhub ...` 即时生效;规划文档暂存于 BoardGameEditor 工作区 `.htyworkflows/plans/2026-07-17-multi-plan-memoryhub-knowledge-system/`(完工后迁入本仓 docs/)。
+`src/memoryhub/`:config(实例配置)→ scanner(md 解析)→ store(SQLite/FTS5/vec0/图谱派生表)→ embedder(API 客户端)→ indexer(编排+watchdog)→ arch(图谱解析/围栏/查询)→ search(三模式 RRF)→ server(MCP+REST+/ui)→ cli。改代码后 `uv run memoryhub ...` 即时生效;规划文档暂存于 BoardGameEditor 工作区 `.htyworkflows/plans/2026-07-17-multi-plan-memoryhub-knowledge-system/`(完工后迁入本仓 docs/)。
