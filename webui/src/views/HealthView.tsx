@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { api, type LintReport, type Stats } from "../api";
+import { api, type FullLint, type LintReport, type Stats } from "../api";
 
 function StatCard({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -22,6 +22,21 @@ export default function HealthView() {
   const [reindexing, setReindexing] = useState(false);
   const [reindexResult, setReindexResult] = useState<string | null>(null);
   const [reindexError, setReindexError] = useState<string | null>(null);
+  const [full, setFull] = useState<FullLint | null>(null);
+  const [fullError, setFullError] = useState<string | null>(null);
+  const [switching, setSwitching] = useState(false);
+
+  const toggleCapture = () => {
+    if (!stats) return;
+    const next = stats.captureMode === "auto" ? "manual" : "auto";
+    if (!window.confirm(`切换沉淀触发为 ${next}?(auto 只自动化细节层沉淀,架构层永远需人工批准)`)) return;
+    setSwitching(true);
+    api
+      .setCaptureMode(next)
+      .then(() => loadStats())
+      .catch((e) => setStatsError((e as Error).message))
+      .finally(() => setSwitching(false));
+  };
 
   const loadStats = useCallback(() => {
     api
@@ -48,6 +63,16 @@ export default function HealthView() {
       .catch((e) => {
         setLint(null);
         setLintError((e as Error).message);
+      });
+    api
+      .fullLint()
+      .then((f) => {
+        setFull(f);
+        setFullError(null);
+      })
+      .catch((e) => {
+        setFull(null);
+        setFullError((e as Error).message);
       });
   }, [loadStats]);
 
@@ -112,7 +137,7 @@ export default function HealthView() {
           )}
         </StatCard>
 
-        <StatCard label="服务信息">
+        <StatCard label="服务信息 · 沉淀触发">
           {stats ? (
             <div className="mt-2 flex items-start justify-between gap-3">
               <div className="min-w-0 font-mono text-[11px] leading-relaxed" style={{ color: "var(--text-deep)" }}>
@@ -120,8 +145,18 @@ export default function HealthView() {
                 <div className="truncate" title={stats.workspace}>
                   workspace {stats.workspace}
                 </div>
-                <div className="truncate" title={stats.memoryRoot}>
-                  memoryRoot {stats.memoryRoot}
+                <div className="mt-1.5 flex items-center gap-2 font-sans">
+                  <button
+                    onClick={toggleCapture}
+                    disabled={switching}
+                    className="cursor-pointer rounded-full px-3 py-1 text-[11px] font-semibold text-white disabled:opacity-60"
+                    style={{ background: "var(--accent)" }}
+                  >
+                    capture: {stats.captureMode} ⇄
+                  </button>
+                  <span className="text-[10px]" style={{ color: "var(--text-3)" }}>
+                    auto 仅自动化细节层
+                  </span>
                 </div>
               </div>
               <button
@@ -206,12 +241,55 @@ export default function HealthView() {
         )}
       </div>
 
-      {/* 细节层:嫌疑清单(占位空态) */}
+      {/* 细节层:嫌疑清单(AI 审计队列,实时计算幂等) */}
       <div className="rounded-[14px] border p-5" style={{ background: "var(--elevated)", borderColor: "var(--border)" }}>
-        <div className="text-[14px] font-bold tracking-wide">细节层 · 嫌疑清单</div>
-        <div className="mt-3 text-xs leading-relaxed" style={{ color: "var(--text-3)" }}>
-          审计队列随沉淀闭环(plan-4)上线:分类漂移 / 重复嫌疑 / 断链候选将在此列出,由 AI 审计会话消化。
+        <div className="flex flex-wrap items-baseline gap-2.5">
+          <span className="text-[14px] font-bold tracking-wide">细节层 · 嫌疑清单</span>
+          <span className="text-[11px]" style={{ color: "var(--text-3)" }}>
+            {full
+              ? `${full.suspects.length} 项 · 双写对账${full.hard.length === 0 ? " ✓" : ` ✗${full.hard.length}`} · 向量覆盖 ${full.vectorCoverage}/${full.docs} · 由 AI 审计会话消化(memory_lint / lint --audit-queue)`
+              : fullError
+                ? `全量 lint 失败:${fullError}`
+                : "全量 lint 计算中…"}
+          </span>
         </div>
+        {full && full.hard.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1.5">
+            {full.hard.map((h, i) => (
+              <div key={i} className="text-xs font-semibold" style={{ color: "var(--danger)" }}>
+                ✗ {h}
+              </div>
+            ))}
+          </div>
+        )}
+        {full && full.suspects.length > 0 && (
+          <div className="mt-3 flex flex-col gap-1.5">
+            {full.suspects.slice(0, 60).map((s, i) => (
+              <div key={i} className="flex items-start gap-2 text-xs leading-relaxed">
+                <span
+                  className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold"
+                  style={{ background: "var(--surface-soft)", color: "var(--accent-text)" }}
+                >
+                  {s.kind}
+                </span>
+                <span className="font-mono break-all" style={{ color: "var(--text-deep)" }}>
+                  {s.subject}
+                </span>
+                <span style={{ color: "var(--text-3)" }}>{s.detail}</span>
+              </div>
+            ))}
+            {full.suspects.length > 60 && (
+              <div className="text-[11px]" style={{ color: "var(--text-3)" }}>
+                …其余 {full.suspects.length - 60} 项经 CLI --audit-queue 查看
+              </div>
+            )}
+          </div>
+        )}
+        {full && full.suspects.length === 0 && full.hard.length === 0 && (
+          <div className="mt-3 text-[13px] font-semibold" style={{ color: "var(--success)" }}>
+            审计队列清空 ✓
+          </div>
+        )}
       </div>
     </div>
   );

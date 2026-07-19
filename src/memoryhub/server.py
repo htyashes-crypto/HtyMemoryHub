@@ -80,6 +80,7 @@ def _do_stats() -> dict:
         "lastIndexed": last,
         "embedding": {"baseUrl": emb.base_url, "model": emb.model, "dim": emb.dim} if emb else None,
         "fingerprint": fp,
+        "captureMode": cfg.capture_mode,
     }
 
 
@@ -109,6 +110,35 @@ def memory_get(names: list[str]) -> dict:
 def memory_stats() -> dict:
     """索引状态:文档/块数、最后索引时间、embedding 模型指纹、工作区路径。"""
     return _do_stats()
+
+
+@mcp.tool()
+def memory_upsert(rel_path: str, content: str, dry_run: bool = False) -> dict:
+    """原子写入一条记忆(完整 md 文本):权威落盘+Claude 缓存双写+增量索引+围栏校验,
+    任一步失败整体回滚。沉淀一律先 dry_run=True 校验、修完违规再真写。
+    rel_path 相对 memory 根(如 index_5_mod/feedback_x.md);架构组(index_12_architecture)
+    文件自动跑全量围栏——新模块须 frontmatter 带用户批准的 approved 标记,否则拒收。"""
+    from .writer import upsert
+
+    return dict(upsert(_config(), rel_path, content, dry_run=dry_run))
+
+
+@mcp.tool()
+def memory_delete(rel_path: str) -> dict:
+    """删除一条记忆(权威+缓存双删+索引清理)。删除前先 memory_get 确认内容与引用面。"""
+    from .writer import delete
+
+    return dict(delete(_config(), rel_path))
+
+
+@mcp.tool()
+def memory_lint() -> dict:
+    """两级一致性校验:hard=硬违规(架构围栏/双写对账,必须处理);
+    suspects=嫌疑清单(重复对/组漂移/断链/封面漏登/弱frontmatter,供 AI 审计消化)。
+    沉淀收尾必须 hard 为空才算完成。"""
+    from .lint import run_lint
+
+    return run_lint(_config())
 
 
 @mcp.tool()
@@ -254,6 +284,42 @@ def create_app(cfg: InstanceConfig):
             "errors": errors,
         })
 
+    async def full_lint_ep(_: Request) -> JSONResponse:
+        from .lint import run_lint
+
+        return JSONResponse(run_lint(cfg))
+
+    async def memory_upsert_ep(req: Request) -> JSONResponse:
+        from .writer import upsert
+
+        body = await req.json()
+        try:
+            return JSONResponse(dict(upsert(
+                cfg, str(body["relPath"]), str(body["content"]),
+                dry_run=bool(body.get("dryRun", False)))))
+        except (KeyError, SystemExit) as exc:
+            return _err(exc)
+
+    async def memory_delete_ep(req: Request) -> JSONResponse:
+        from .writer import delete
+
+        body = await req.json()
+        try:
+            return JSONResponse(dict(delete(cfg, str(body["relPath"]))))
+        except (KeyError, SystemExit) as exc:
+            return _err(exc)
+
+    async def capture_mode_ep(req: Request) -> JSONResponse:
+        from .config import write_config
+
+        body = await req.json()
+        value = str(body.get("value", ""))
+        if value not in ("manual", "auto"):
+            return _err(ValueError("value 只能 manual / auto"))
+        cfg.capture_mode = value
+        write_config(cfg)
+        return JSONResponse({"captureMode": value})
+
     app = mcp.streamable_http_app()  # MCP 端点挂 /mcp
     for route in (
         Route("/healthz", healthz),
@@ -266,6 +332,10 @@ def create_app(cfg: InstanceConfig):
         Route("/arch/impact", arch_impact_ep),
         Route("/arch/graph", arch_graph_ep),
         Route("/arch/lint", arch_lint_ep),
+        Route("/lint", full_lint_ep),
+        Route("/memory/upsert", memory_upsert_ep, methods=["POST"]),
+        Route("/memory/delete", memory_delete_ep, methods=["POST"]),
+        Route("/capture-mode", capture_mode_ep, methods=["POST"]),
     ):
         app.router.routes.append(route)
 

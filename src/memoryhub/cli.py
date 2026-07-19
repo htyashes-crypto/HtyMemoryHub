@@ -368,6 +368,70 @@ def serve(workspace: str = WorkspaceOpt) -> None:
     uvicorn.run(create_app(cfg), host="127.0.0.1", port=cfg.port, log_level="warning")
 
 
+@app.command()
+def lint(
+    workspace: str = WorkspaceOpt,
+    audit_queue: bool = typer.Option(False, "--audit-queue", help="只输出嫌疑清单纯数据(AI 审计会话消费)"),
+) -> None:
+    """两级一致性校验:硬规则(围栏/双写对账)+ 嫌疑清单(重复/漂移/断链/封面)。"""
+    import json as _json
+
+    from .lint import run_lint
+
+    r = run_lint(load_config(workspace))
+    if audit_queue:
+        typer.echo(_json.dumps(r["suspects"], ensure_ascii=False, indent=2))
+        return
+    typer.echo(f"docs {r['docs']} · 硬违规 {len(r['hard'])} · 嫌疑 {len(r['suspects'])}")
+    for e in r["hard"]:
+        typer.echo(f"  ✗ {e}")
+    kinds: dict[str, int] = {}
+    for s in r["suspects"]:
+        kinds[s["kind"]] = kinds.get(s["kind"], 0) + 1
+    if kinds:
+        typer.echo("  嫌疑分布: " + " · ".join(f"{k}×{v}" for k, v in sorted(kinds.items()))
+                   + "(明细 --audit-queue)")
+    raise SystemExit(0 if r["ok"] else 1)
+
+
+@app.command()
+def upsert(
+    rel_path: str = typer.Argument(..., help="相对 memory 根的路径,如 index_5_mod/feedback_x.md"),
+    workspace: str = WorkspaceOpt,
+    from_file: str = typer.Option(..., "--from-file", help="内容来源文件"),
+    dry_run: bool = typer.Option(False, "--dry-run", help="只校验不落盘"),
+) -> None:
+    """原子写入一条记忆(权威+双写+索引+围栏,失败回滚)。"""
+    import json as _json
+    from pathlib import Path
+
+    from .writer import upsert as do_upsert
+
+    content = Path(from_file).read_text(encoding="utf-8")
+    r = do_upsert(load_config(workspace), rel_path, content, dry_run=dry_run)
+    typer.echo(_json.dumps(r, ensure_ascii=False, indent=2))
+    raise SystemExit(0 if r["ok"] else 1)
+
+
+@app.command("capture-mode")
+def capture_mode(
+    value: str = typer.Argument(None, help="manual / auto;缺省显示当前"),
+    workspace: str = WorkspaceOpt,
+) -> None:
+    """查看/切换沉淀触发模式(auto 只自动化细节层沉淀,架构层永远人批)。"""
+    from .config import write_config
+
+    cfg = load_config(workspace)
+    if value is None:
+        typer.echo(cfg.capture_mode)
+        return
+    if value not in ("manual", "auto"):
+        raise SystemExit("取值只能 manual / auto")
+    cfg.capture_mode = value
+    write_config(cfg)
+    typer.echo(f"✓ capture_mode = {value}")
+
+
 def _autostart_task_name(workspace) -> str:
     import re
 

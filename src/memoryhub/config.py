@@ -33,6 +33,7 @@ class InstanceConfig:
     memory_root_rel: str
     embedding: EmbeddingConfig | None  # None = 未 init,向量能力不可用
     auth_token: str = ""               # 非空则服务端校验 Bearer(留空=本机免鉴权)
+    capture_mode: str = "manual"       # manual=用户显式信号才沉淀;auto=会话完成任务即沉淀(架构层仍须人批)
 
     @property
     def instance_dir(self) -> Path:
@@ -82,6 +83,7 @@ def load_config(workspace: str | None) -> InstanceConfig:
         memory_root_rel=data.get("memoryRoot", DEFAULT_MEMORY_ROOT),
         embedding=emb,
         auth_token=str(data.get("authToken", "")),
+        capture_mode=str(data.get("captureMode", "manual")),
     )
 
 
@@ -90,6 +92,8 @@ def write_config(cfg: InstanceConfig) -> None:
     data: dict = {"port": cfg.port, "memoryRoot": cfg.memory_root_rel}
     if cfg.auth_token:
         data["authToken"] = cfg.auth_token
+    if cfg.capture_mode != "manual":
+        data["captureMode"] = cfg.capture_mode
     if cfg.embedding is not None:
         data["embedding"] = {
             "baseUrl": cfg.embedding.base_url,

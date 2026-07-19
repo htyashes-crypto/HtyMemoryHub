@@ -109,6 +109,14 @@ export interface Graph { nodes: GraphNode[]; edges: GraphEdge[] }
 
 export interface LintReport { modules: number; features: number; extensionPoints: number; edges: number; errors: string[] }
 
+export interface FullLint {
+  docs: number;
+  vectorCoverage: number;
+  hard: string[];
+  suspects: { kind: string; subject: string; detail: string }[];
+  ok: boolean;
+}
+
 export const api = {
   stats: () => get<Stats>("/stats"),
   search: (q: string, mode: string, topK: number, group?: string, mtype?: string) =>
@@ -124,5 +132,15 @@ export const api = {
     get<Impact>(`/arch/impact?target=${encodeURIComponent(target)}&depth=${depth}`),
   graph: () => get<Graph>("/arch/graph"),
   lint: () => get<LintReport>("/arch/lint"),
+  fullLint: () => get<FullLint>("/lint"),
+  setCaptureMode: (value: string) =>
+    fetch("/capture-mode", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ value }),
+    }).then((r) => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    }),
   reindex: () => fetch("/reindex?keyword_only=false", { method: "POST" }).then((r) => r.json()),
 };
