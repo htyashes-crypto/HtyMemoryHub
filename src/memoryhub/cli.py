@@ -176,6 +176,32 @@ def arch_lint(workspace: str = WorkspaceOpt) -> None:
     typer.echo("围栏校验全绿 ✓")
 
 
+@arch_app.command("impact")
+def arch_impact_cmd(
+    target: str,
+    workspace: str = WorkspaceOpt,
+    depth: int = typer.Option(2, "--depth", "-d"),
+) -> None:
+    """知识级影响面:改 target 会波及谁(BFS,带理由与 BUG 证据)。"""
+    from .arch import impact
+    from .store import connect
+
+    cfg = load_config(workspace)
+    con = connect(cfg.db_path)
+    r = impact(con, target, depth)
+    con.close()
+    if r is None:
+        raise SystemExit(f"目标模块不存在: {target}")
+    typer.echo(f"改 {r['target']} 的知识级波及(depth {r['depth']}):共 {r['affected']} 项")
+    for hop in r["hops"]:
+        typer.echo(f"— 第 {hop['hop']} 跳 —")
+        for it in hop["items"]:
+            ev = f"  [{','.join(it['evidence'])}]" if it["evidence"] else ""
+            typer.echo(f"  {it['module']}  ({it['type']}){ev}")
+            typer.echo(f"    {it['reason']}")
+    typer.echo(f"⚠ {r['note']}")
+
+
 @app.command()
 def init(
     workspace: str = WorkspaceOpt,

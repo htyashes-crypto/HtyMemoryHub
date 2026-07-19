@@ -109,6 +109,43 @@ def memory_stats() -> dict:
     return _do_stats()
 
 
+@mcp.tool()
+def arch_overview() -> dict:
+    """架构全局形势:24 模块按层分组(名称/职责/feature 数/扩展点数/进出边),
+    理解项目、评估改动前先调这里(第二层图谱,铁律之后、组细节之前)。"""
+    from .arch import overview
+
+    with closing(connect(_config().db_path)) as con:
+        return overview(con)
+
+
+@mcp.tool()
+def arch_module(name: str, include_features: bool = True) -> dict:
+    """单模块全量细节:features(需求/逻辑/关联记忆)、扩展点(anchor+实现族=
+    变更契约 Additive 判定依据)、进出关系边。name 如 module_statesync。"""
+    from .arch import module_detail
+
+    with closing(connect(_config().db_path)) as con:
+        d = module_detail(con, name, include_features)
+    if d is None:
+        raise ValueError(f"模块不存在: {name}(用 arch_overview 查可用名)")
+    return d
+
+
+@mcp.tool()
+def arch_impact(target: str, depth: int = 2) -> dict:
+    """知识级影响面:改 target(模块名或 模块名#featureId)会波及谁——BFS 沿
+    affects/depends_on/shares_state/extends 边,每项带理由与 BUG 证据;
+    与 Jet 代码反扫互补作变更契约双证据,结果可直接展开回归用例。"""
+    from .arch import impact
+
+    with closing(connect(_config().db_path)) as con:
+        r = impact(con, target, depth)
+    if r is None:
+        raise ValueError(f"目标模块不存在: {target}")
+    return r
+
+
 # ---------------- REST + 应用组装 ----------------
 
 def create_app(cfg: InstanceConfig):
@@ -168,6 +205,34 @@ def create_app(cfg: InstanceConfig):
                     return _err(exc, 409)  # 指纹不符等,如实回传
         return JSONResponse(payload)
 
+    async def arch_overview_ep(_: Request) -> JSONResponse:
+        from .arch import overview
+
+        with closing(connect(cfg.db_path)) as con:
+            return JSONResponse(overview(con))
+
+    async def arch_module_ep(req: Request) -> JSONResponse:
+        from .arch import module_detail
+
+        with closing(connect(cfg.db_path)) as con:
+            d = module_detail(con, req.path_params["name"],
+                              req.query_params.get("features") != "false")
+        if d is None:
+            return _err(KeyError(f"模块不存在: {req.path_params['name']}"), 404)
+        return JSONResponse(d)
+
+    async def arch_impact_ep(req: Request) -> JSONResponse:
+        from .arch import impact
+
+        target = req.query_params.get("target", "").strip()
+        if not target:
+            return _err(ValueError("缺少参数 target"))
+        with closing(connect(cfg.db_path)) as con:
+            r = impact(con, target, int(req.query_params.get("depth", "2")))
+        if r is None:
+            return _err(KeyError(f"目标模块不存在: {target}"), 404)
+        return JSONResponse(r)
+
     app = mcp.streamable_http_app()  # MCP 端点挂 /mcp
     for route in (
         Route("/healthz", healthz),
@@ -175,6 +240,9 @@ def create_app(cfg: InstanceConfig):
         Route("/search", search),
         Route("/doc/{name}", doc),
         Route("/reindex", reindex, methods=["POST"]),
+        Route("/arch/overview", arch_overview_ep),
+        Route("/arch/module/{name}", arch_module_ep),
+        Route("/arch/impact", arch_impact_ep),
     ):
         app.router.routes.append(route)
 
