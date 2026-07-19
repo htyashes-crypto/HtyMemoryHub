@@ -269,6 +269,14 @@ def create_app(cfg: InstanceConfig):
     ):
         app.router.routes.append(route)
 
+    from pathlib import Path
+
+    from starlette.staticfiles import StaticFiles
+
+    dist = Path(__file__).resolve().parents[2] / "webui" / "dist"
+    if dist.is_dir():  # 前端产物入库随仓走;无产物(纯后端部署)时 /ui 缺席而非报错
+        app.mount("/ui", StaticFiles(directory=str(dist), html=True), name="ui")
+
     if cfg.auth_token:  # 非空才启用 Bearer 校验(留空=127.0.0.1 本机免鉴权)
         from starlette.middleware.base import BaseHTTPMiddleware
 
