@@ -241,6 +241,20 @@ def module_detail(con, name: str, include_features: bool = True) -> dict | None:
     return d
 
 
+def graph(con) -> dict:
+    """全图节点+边(前端泳道/力导一次拉取;边 target 归一到模块名)。"""
+    nodes = []
+    for name, title, layer in con.execute("SELECT name, title, layer FROM modules ORDER BY layer, name"):
+        eps = con.execute("SELECT COUNT(*) FROM extension_points WHERE module=?", (name,)).fetchone()[0]
+        nodes.append({"name": name, "title": title, "layer": layer, "extensionPoints": eps})
+    edges = [
+        {"src": src, "type": rt, "target": tg.split("#")[0], "reason": rs,
+         "evidence": json.loads(ev)}
+        for src, rt, tg, rs, ev in con.execute(
+            "SELECT src_module, rtype, target, reason, evidence FROM relations")]
+    return {"nodes": nodes, "edges": edges}
+
+
 # 影响面默认遍历的边类型;related 属弱关联,调用方显式给 edge_types 才走
 IMPACT_EDGE_TYPES = ("affects", "depends_on", "shares_state", "extends")
 

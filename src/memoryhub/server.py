@@ -235,6 +235,25 @@ def create_app(cfg: InstanceConfig):
             return _err(KeyError(f"目标模块不存在: {target}"), 404)
         return JSONResponse(r)
 
+    async def arch_graph_ep(_: Request) -> JSONResponse:
+        from .arch import graph
+
+        with closing(connect(cfg.db_path)) as con:
+            return JSONResponse(graph(con))
+
+    async def arch_lint_ep(_: Request) -> JSONResponse:
+        from .arch import collect
+        from .scanner import scan
+
+        defs, errors = collect(scan(cfg.memory_root))
+        return JSONResponse({
+            "modules": len(defs),
+            "features": sum(len(d.features) for d in defs),
+            "extensionPoints": sum(len(d.extension_points) for d in defs),
+            "edges": sum(len(d.relations) for d in defs),
+            "errors": errors,
+        })
+
     app = mcp.streamable_http_app()  # MCP 端点挂 /mcp
     for route in (
         Route("/healthz", healthz),
@@ -245,6 +264,8 @@ def create_app(cfg: InstanceConfig):
         Route("/arch/overview", arch_overview_ep),
         Route("/arch/module/{name}", arch_module_ep),
         Route("/arch/impact", arch_impact_ep),
+        Route("/arch/graph", arch_graph_ep),
+        Route("/arch/lint", arch_lint_ep),
     ):
         app.router.routes.append(route)
 
