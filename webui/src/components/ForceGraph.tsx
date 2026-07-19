@@ -37,6 +37,10 @@ function buildOption(nodes: GraphNode[], edges: GraphEdge[]): EChartsCoreOption 
       borderColor: cssVarValue("--border"),
       textStyle: { color: cssVarValue("--text"), fontSize: 11 },
       confine: true,
+      // tooltip DOM 挂 body:挂容器内时其出现/消失会扰动容器布局(滚动条/尺寸微抖)
+      // → ResizeObserver → resize → 力导重跑 → 整图闪烁的反馈环;脱离容器根治
+      appendToBody: true,
+      transitionDuration: 0,
       formatter: (p: { dataType?: string; data?: { id?: string; source?: string; target?: string; reason?: string; edgeType?: string } }) => {
         if (p.dataType === "edge" && p.data) {
           const s = nodeOf.get(p.data.source ?? "");
@@ -115,7 +119,17 @@ export default function ForceGraph({ nodes, edges, onOpenModule }: Props) {
       const q = p as { dataType?: string; data?: { id?: string } };
       if (q.dataType === "node" && q.data?.id) openRef.current(q.data.id);
     });
-    const ro = new ResizeObserver(() => chart.resize());
+    // resize 仅在尺寸真实变化(>1px)时触发——chart.resize 会重启力导迭代,
+    // 微抖直通会造成整图持续跳动
+    let lastW = el.clientWidth;
+    let lastH = el.clientHeight;
+    const ro = new ResizeObserver(() => {
+      const { clientWidth: w, clientHeight: h } = el;
+      if (Math.abs(w - lastW) <= 1 && Math.abs(h - lastH) <= 1) return;
+      lastW = w;
+      lastH = h;
+      chart.resize();
+    });
     ro.observe(el);
     // 主题切换(html.dark)后 token 实际值变化,重建 option 重取色
     const mo = new MutationObserver(render);
